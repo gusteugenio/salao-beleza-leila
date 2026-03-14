@@ -35,7 +35,7 @@ O sistema conta com regras de negócio inteligentes, como a sugestão de agrupam
 - **Sugestão Inteligente:** O sistema identifica se a cliente possui mais de um agendamento na mesma semana e sugere unificá-los em uma única data.
 
 ### Para a Gestão (Leila)
-- **Painel Operacional:** Acesso para alterar qualquer agendamento, confirmar horários e gerenciar o status de cada serviço (`Agendado`, `Finalizado`, etc.).
+- **Painel Operacional:** Acesso para alterar qualquer agendamento, confirmar horários e gerenciar o status de cada serviço (`Agendado`, `Finalizado`, `Cancelado`.).
 - **Painel Gerencial:** Dashboard com métricas e um relatório de desempenho semanal para auxiliar na tomada de decisões estratégicas.
 
 ---
@@ -117,10 +117,14 @@ docker compose exec php composer require laravel/sanctum
 docker compose exec php php artisan vendor:publish --provider="Laravel\\Sanctum\\SanctumServiceProvider"
 ```
 
-**4. Rode as migrations dentro do container PHP:**
+**4. Rode as migrations e seeds dentro do container PHP:**
 
 ```bash
 docker compose exec php php artisan migrate
+```
+
+```bash
+docker compose exec php php artisan db:seed
 ```
 
 Isso criará todas as tabelas necessárias no MySQL do container.
@@ -148,7 +152,7 @@ Este é um checklist para guiar o desenvolvimento do projeto.
 - [x] Inicializar projeto Angular e configurar proxy para a API.
 
 #### 🔧 Back-end (API com Laravel)
-- [ ] Modelar e criar migrations para o banco de dados.
+- [x] Modelar e criar migrations para o banco de dados.
 - [ ] Implementar autenticação de usuários (clientes e admin).
 - [ ] Implementar endpoints CRUD para serviços.
 - [ ] Implementar endpoints de agendamento com regras de negócio.
