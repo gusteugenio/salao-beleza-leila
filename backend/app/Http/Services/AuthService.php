@@ -3,8 +3,8 @@
 namespace App\Http\Services;
 
 use App\Http\Repositories\UserRepository;
-use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class AuthService
 {
@@ -23,9 +23,15 @@ class AuthService
    */
   public function register(array $data)
   {
-    $data['password'] = Hash::make($data['password']);
+    $validated = validator($data, [
+      'name' => 'required|string',
+      'email' => 'required|email|unique:users',
+      'password' => 'required|min:6'
+    ])->validate();
 
-    return $this->userRepository->create($data);
+    $validated['password'] = Hash::make($validated['password']);
+
+    return $this->userRepository->create($validated);
   }
 
   /**
@@ -33,10 +39,17 @@ class AuthService
    */
   public function login(array $data)
   {
-    $user = $this->userRepository->findByEmail($data['email']);
+    $validated = validator($data, [
+      'email' => 'required|email',
+      'password' => 'required'
+    ])->validate();
 
-    if (!$user || !Hash::check($data['password'], $user->password)) {
-      throw new AuthenticationException('Credenciais inválidas.');
+    $user = $this->userRepository->findByEmail($validated['email']);
+
+    if (!$user || !Hash::check($validated['password'], $user->password)) {
+      throw ValidationException::withMessages([
+        'email' => ['Credenciais inválidas.']
+      ]);
     }
 
     $token = $user->createToken('auth_token')->plainTextToken;
