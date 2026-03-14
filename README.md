@@ -153,7 +153,7 @@ Este é um checklist para guiar o desenvolvimento do projeto.
 
 #### 🔧 Back-end (API com Laravel)
 - [x] Modelar e criar migrations para o banco de dados.
-- [ ] Implementar autenticação de usuários (clientes e admin).
+- [x] Implementar autenticação de usuários (clientes e admin).
 - [ ] Implementar endpoints CRUD para serviços.
 - [ ] Implementar endpoints de agendamento com regras de negócio.
 - [ ] Implementar endpoints de gestão (status, alteração, etc.).
