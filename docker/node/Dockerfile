@@ -2,11 +2,13 @@ FROM node:20
 
 WORKDIR /app
 
+# Copia só package.json para instalar dependências (cache de npm)
 COPY frontend/package*.json ./
 
 RUN npm install
 
-COPY frontend .
+# Copia o restante do frontend
+COPY frontend/ .
 
 EXPOSE 4200
 

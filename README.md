@@ -47,14 +47,15 @@ O projeto foi construído utilizando tecnologias modernas, seguindo o padrão **
 *   **`Backend`**: API RESTful desenvolvida em **Laravel (PHP)**, utilizando Laravel Sanctum para autenticação.
 *   **`Frontend`**: Single Page Application (SPA) interativa construída com **Angular (TypeScript)**.
 *   **`Banco de Dados`**: **SQL** (MySQL) para persistência e gerenciamento dos dados.
-*   **`Containerização`**: Ambiente de desenvolvimento e produção padronizado com **Docker**.
+*   **`Containerização`**: Ambiente de desenvolvimento padronizado com **Docker**.
 *   **`Testes`**: **PHPUnit** para o back-end.
 
 ---
 
 ## 🚀 Como Rodar o Projeto
 
-### 🐳 Opção 1: Docker (Recomendado)
+### 🐳 Docker
+
 Para subir todo o ecossistema (PHP, MySQL, Nginx e Node) de forma automatizada:
 
 ```bash
@@ -62,31 +63,67 @@ Para subir todo o ecossistema (PHP, MySQL, Nginx e Node) de forma automatizada:
 git clone https://github.com/gusteugenio/salao-beleza-leila
 cd salao-beleza-leila
 
-# Suba os containers
-docker-compose up -d
+# Crie o arquivo .env na raiz do projeto
+cp .env.example .env
 ```
-Após a execução, a API estará disponível em `http://localhost:8000` e o front-end em `http://localhost:4200`.
 
-### 💻 Opção 2: Manualmente
-Certifique-se de ter o **PHP**, **Composer**, **Node.js** e um servidor **MySQL** instalados.
+Abra o `.env` e configure as variáveis do banco de dados:
 
-#### **Backend (Laravel)**
+| Variável              | Descrição                    |
+|-----------------------|------------------------------|
+| `MYSQL_DATABASE`      | Nome do banco de dados       |
+| `MYSQL_ROOT_PASSWORD` | Senha do root do MySQL       |
+| `MYSQL_USER`          | Usuário do banco             |
+| `MYSQL_PASSWORD`      | Senha do usuário             |
+
+```bash
+# Suba os containers
+docker compose up -d --build
+```
+
+Após a execução, os serviços estarão disponíveis em:
+
+- 🔗 **API Laravel** → `http://localhost:8000`
+- 🌐 **Front-end Angular** → `http://localhost:4200`
+
+---
+
+### ⚙️ Configuração do Laravel
+
+**1. Copie o `.env` do Laravel dentro do diretório `backend`:**
+
 ```bash
 cd backend
-composer install
 cp .env.example .env
-php artisan key:generate
-# Configure as credenciais do banco de dados no arquivo .env
-php artisan migrate --seed
-php artisan serve
 ```
 
-#### **Frontend (Angular)**
-```bash
-cd frontend
-npm install
-ng serve
+**2. Configure as variáveis de conexão com o banco:**
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=nome_do_banco_definido_no_.env_da_raiz
+DB_USERNAME=usuario_definido_no_.env_da_raiz
+DB_PASSWORD=senha_definida_no_.env_da_raiz
 ```
+
+> ⚠️ **Atenção:** `DB_HOST=mysql` porque o nome do serviço no `docker-compose.yml` é `mysql`.
+
+**3. Instale o Sanctum:**
+
+```bash
+docker compose exec php composer require laravel/sanctum
+docker compose exec php php artisan vendor:publish --provider="Laravel\\Sanctum\\SanctumServiceProvider"
+```
+
+**4. Rode as migrations dentro do container PHP:**
+
+```bash
+docker compose exec php php artisan migrate
+```
+
+Isso criará todas as tabelas necessárias no MySQL do container.
 
 ---
 
@@ -96,9 +133,8 @@ Para garantir a qualidade e a integridade do código, o projeto conta com uma su
 
 #### **Backend (Laravel)**
 ```bash
-# No diretório /backend
-php artisan test
-```
+# Na raiz
+docker compose exec php php artisan test```
 
 ---
 
@@ -109,7 +145,7 @@ Este é um checklist para guiar o desenvolvimento do projeto.
 #### 🐳 Ambiente e Configuração
 - [x] Configurar ambiente Docker com containers para Nginx, PHP, MySQL e Node.js.
 - [x] Inicializar projeto Laravel e configurar `.env`.
-- [ ] Inicializar projeto Angular e configurar proxy para a API.
+- [x] Inicializar projeto Angular e configurar proxy para a API.
 
 #### 🔧 Back-end (API com Laravel)
 - [ ] Modelar e criar migrations para o banco de dados.
