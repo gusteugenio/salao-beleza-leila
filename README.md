@@ -155,7 +155,7 @@ Este é um checklist para guiar o desenvolvimento do projeto.
 - [x] Modelar e criar migrations para o banco de dados.
 - [x] Implementar autenticação de usuários (clientes e admin).
 - [x] Implementar endpoints CRUD para serviços.
-- [ ] Implementar endpoints de agendamento com regras de negócio.
+- [x] Implementar endpoints de agendamento com regras de negócio.
 - [ ] Implementar endpoints de gestão (status, alteração, etc.).
 - [ ] Implementar endpoints para o dashboard gerencial.
 - [ ] Escrever testes unitários com PHPUnit.
