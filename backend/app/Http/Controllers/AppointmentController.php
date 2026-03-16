@@ -156,4 +156,23 @@ class AppointmentController extends Controller
       $this->appointmentService->cancel($appointment)
     );
   }
+
+  /**
+   * Obtém horários disponíveis para uma data específica
+   */
+  public function getAvailableTimes(Request $request)
+  {
+    $data = $request->validate([
+      'date' => 'required|date_format:Y-m-d',
+      'duration' => 'required|integer|min:30'
+    ]);
+
+    return response()->json(
+      $this->appointmentService->getAvailableTimes(
+        $data['date'],
+        $data['duration'],
+        $request->user()
+      )
+    );
+  }
 }

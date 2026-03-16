@@ -1,0 +1,140 @@
+<div class="step-container">
+  <div class="step-header">
+    <h2>3. Confirme seu Agendamento</h2>
+    <p class="step-subtitle">Revise os detalhes antes de confirmar</p>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-cards">
+    <!-- Date and Time Card -->
+    <div class="summary-card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+      </div>
+      <div class="card-content">
+        <h3>Data e Hora</h3>
+        <p class="main-text">{{ formatDateTime() }}</p>
+        <small>Duração: {{ formatDuration(getTotalDuration()) }}</small>
+      </div>
+    </div>
+
+    <!-- Services Card -->
+    <div class="summary-card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 9l12 0"></path>
+          <path d="M6 9l3 -3"></path>
+          <path d="M9 6l3 3"></path>
+          <path d="M6 15l12 0"></path>
+          <path d="M6 15l3 -3"></path>
+          <path d="M9 12l3 3"></path>
+        </svg>
+      </div>
+      <div class="card-content">
+        <h3>Serviços</h3>
+        <p class="services-list">
+          <span *ngFor="let service of getSelectedServiceDetails(); let last = last">
+            {{ service.name }}<span *ngIf="!last">,</span>
+          </span>
+        </p>
+        <small>{{ selectedServices.length }} serviço(s)</small>
+      </div>
+    </div>
+
+    <!-- Price Card -->
+    <div class="summary-card highlight">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="1" x2="12" y2="23"></line>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+        </svg>
+      </div>
+      <div class="card-content">
+        <h3>Valor Total</h3>
+        <p class="main-text price">{{ formatPrice(getTotalPrice()) }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Services Timeline -->
+  <div class="timeline-section">
+    <h3>Cronograma de Serviços</h3>
+    <div class="timeline">
+      <div *ngFor="let item of getServiceTimeline()" class="timeline-item">
+        <div class="timeline-time">
+          <span class="time-range">{{ item.start }} - {{ item.end }}</span>
+          <span class="duration">({{ item.service.duration }}min)</span>
+        </div>
+        <div class="timeline-service">
+          <span class="service-name">{{ item.service.name }}</span>
+          <span class="service-price">{{ formatPrice(+item.service.price) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    <button class="btn-prev" (click)="handlePrevStep()" [disabled]="loading">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      Voltar
+    </button>
+    <button
+      class="btn-confirm"
+      [disabled]="loading"
+      (click)="validateAndCreate()"
+    >
+      <span *ngIf="!loading">Confirmar Agendamento</span>
+      <span *ngIf="loading">Processando...</span>
+    </button>
+  </div>
+
+  <!-- Unify Modal -->
+  <div class="modal-overlay" *ngIf="showUnifyModal" (click)="closeUnifyModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Agrupar Agendamentos?</h3>
+        <button class="modal-close" (click)="closeUnifyModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p>
+          Detectamos que você já possui um agendamento na mesma semana.
+          Gostaria de agrupar os novos serviços no agendamento existente?
+        </p>
+        <div class="existing-appointment-info" *ngIf="existingAppointment">
+          <p>
+            <strong>Data atual:</strong> {{ existingAppointment.scheduled_at | date: 'dd/MM/yyyy HH:mm' }}
+          </p>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" (click)="closeUnifyModal()" [disabled]="loading">
+          Criar Novo Agendamento
+        </button>
+        <button class="btn-modal-confirm" (click)="addServicesToExisting()" [disabled]="loading">
+          <span *ngIf="!loading">Agrupar Serviços</span>
+          <span *ngIf="loading">Agrupando...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

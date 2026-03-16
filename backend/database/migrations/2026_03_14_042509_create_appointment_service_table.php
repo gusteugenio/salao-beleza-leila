@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('appointment_service', function (Blueprint $table) {
+        Schema::create('appointment_service', function (Blueprint $table) {     
             $table->id();
             $table->foreignId('appointment_id')->constrained()->onDelete('cascade');
             $table->foreignId('service_id')->constrained()->onDelete('cascade');
+            $table->dateTime('start_at')->nullable();
+            $table->dateTime('end_at')->nullable();
             $table->enum('status', ['Pendente', 'Finalizado', 'Cancelado'])->default('Pendente');
             $table->timestamps();
         });

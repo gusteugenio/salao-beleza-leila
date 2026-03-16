@@ -1,1 +1,212 @@
-<p>appointments works!</p>
+<div class="appointments-container">
+  <div class="appointments-content">
+    <div class="header-section">
+      <h1>Meus Agendamentos</h1>
+      <p class="subtitle">Visualize e gerencie seus agendamentos com o salão</p>
+    </div>
+
+    <!-- Avisos de sucesso/erro -->
+    <div *ngIf="success" class="alert alert-success">
+      {{ success }}
+    </div>
+    <div *ngIf="error" class="alert alert-error">
+      {{ error }}
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-section">
+      <div class="filter-group">
+        <label for="status-filter">Status</label>
+        <select
+          id="status-filter"
+          [(ngModel)]="filterStatus"
+          (change)="applyFilters()"
+          class="filter-select"
+        >
+          <option *ngFor="let status of statuses" [value]="status.value">
+            {{ status.label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="date-from">Data de</label>
+        <input
+          id="date-from"
+          type="date"
+          [(ngModel)]="filterDateFrom"
+          (change)="applyFilters()"
+          class="filter-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label for="date-to">até</label>
+        <input
+          id="date-to"
+          type="date"
+          [(ngModel)]="filterDateTo"
+          (change)="applyFilters()"
+          class="filter-input"
+        />
+      </div>
+
+      <div class="filter-group search-group">
+        <label for="search">Pesquisar</label>
+        <input
+          id="search"
+          type="text"
+          [(ngModel)]="searchText"
+          (input)="applyFilters()"
+          placeholder="Serviço ou data..."
+          class="filter-input"
+        />
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="loading-section">
+      <div class="loading-spinner"></div>
+      <p>Carregando seus agendamentos...</p>
+    </div>
+
+    <!-- Lista de Agendamentos -->
+    <div *ngIf="!loading" class="appointments-section">
+      <div *ngIf="filteredAppointments.length === 0" class="empty-state">
+        <div class="empty-icon">📅</div>
+        <p class="empty-message">Nenhum agendamento encontrado</p>
+        <a routerLink="/client/home" class="empty-link">Realizar novo agendamento</a>
+      </div>
+
+      <div *ngIf="filteredAppointments.length > 0" class="appointments-list">
+        <div 
+          *ngFor="let appointment of filteredAppointments" 
+          class="appointment-card"
+          [class]="'card-' + getStatusClass(appointment.status)"
+        >
+          <div class="appointment-header">
+            <div class="appointment-date">
+              <div class="date-day">
+                {{ appointment.scheduled_at | date: 'dd' }}
+              </div>
+              <div class="date-info">
+                <div class="date-month">
+                  {{ appointment.scheduled_at | date: 'MMM' }}
+                </div>
+                <div class="date-time">
+                  {{ appointment.scheduled_at | date: 'HH:mm' }}
+                </div>
+              </div>
+            </div>
+            <div class="appointment-info">
+              <h3 class="appointment-services">
+                {{ getServiceSchedule(appointment) }}
+              </h3>
+              <span class="appointment-status" [class]="getStatusClass(appointment.status)">
+                {{ appointment.status }}
+              </span>
+            </div>
+            <div class="appointment-value">
+              {{ formatPrice(getTotalPrice(appointment)) }}
+            </div>
+          </div>
+
+          <div class="appointment-actions">
+            <button
+              *ngIf="canEdit(appointment)"
+              (click)="openEditModal(appointment)"
+              class="action-button action-edit"
+              title="Editar agendamento"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              Editar
+            </button>
+            <button
+              (click)="openDetailsModal(appointment)"
+              class="action-button action-details"
+              title="Ver detalhes"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              Detalhes
+            </button>
+            <button
+              *ngIf="appointment.status !== 'Cancelado' && appointment.status !== 'Finalizado'"
+              (click)="openCancelConfirm(appointment)"
+              class="action-button action-cancel"
+              title="Cancelar agendamento"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+              Cancelar
+            </button>
+            <div *ngIf="!canEdit(appointment) && appointment.status !== 'Cancelado' && appointment.status !== 'Finalizado'" class="edit-locked">
+              <span class="locked-tooltip">Alterações disponíveis apenas com 2+ dias de antecedência</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Detalhes -->
+  <div *ngIf="showDetailsModal && selectedAppointment" class="modal-overlay" (click)="closeDetailsModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Detalhes do Agendamento</h2>
+        <button class="modal-close" (click)="closeDetailsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-row">
+          <span class="label">Data e Hora:</span>
+          <span class="value">{{ formatDate(selectedAppointment.scheduled_at) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Status:</span>
+          <span class="value status" [class]="getStatusClass(selectedAppointment.status)">
+            {{ selectedAppointment.status }}
+          </span>
+        </div>
+        <div class="detail-row services-row">
+          <span class="label">Serviços:</span>
+          <div class="services-container">
+            <div *ngFor="let service of selectedAppointment.services" class="service-detail">
+              <div class="service-header">
+                <div class="service-name">{{ service.name }}</div>
+                <div class="service-time" *ngIf="service.pivot?.start_at && service.pivot?.end_at">
+                  {{ formatServiceTime(service.pivot?.start_at || '') }} - {{ formatServiceTime(service.pivot?.end_at || '') }}
+                </div>
+              </div>
+              <div class="service-info">
+                <span class="service-status" [class]="'status-' + (service.pivot?.status || 'Pendente').toLowerCase()">
+                  {{ service.pivot?.status || 'Pendente' }}
+                </span>
+                <span class="service-price">{{ formatPrice(service.price) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="detail-row total-row">
+          <span class="label">Valor Total:</span>
+          <span class="value total-value">{{ formatPrice(getTotalPrice(selectedAppointment)) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Criado em:</span>
+          <span class="value">{{ formatDate(selectedAppointment.created_at) }}</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button (click)="closeDetailsModal()" class="button-primary">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>

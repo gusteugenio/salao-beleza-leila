@@ -19,14 +19,32 @@ class AppointmentSeeder extends Seeder
     $manicure = Service::where('name', 'Manicure')->first();
     $pedicure = Service::where('name', 'Pedicure')->first();
 
+    $scheduledAt = Carbon::now()->setTime(9, 30);
+
     $appt1 = Appointment::create([
       'user_id' => $cliente1->id,
-      'scheduled_at' => Carbon::now()->next(Carbon::MONDAY)->setTime(9, 30),
+      'scheduled_at' => $scheduledAt,
       'status' => 'Pendente',
     ]);
+
+    // Calcula horários sequenciais dos serviços
+    $corteStart = $scheduledAt->copy();
+    $corteEnd = $corteStart->copy()->addMinutes($corte->duration);
+    
+    $manicureStart = $corteEnd->copy();
+    $manicureEnd = $manicureStart->copy()->addMinutes($manicure->duration);
+
     $appt1->services()->attach([
-      $corte->id => ['status' => 'Pendente'],
-      $manicure->id => ['status' => 'Pendente']
+      $corte->id => [
+        'status' => 'Pendente',
+        'start_at' => $corteStart->toDateTimeString(),
+        'end_at' => $corteEnd->toDateTimeString()
+      ],
+      $manicure->id => [
+        'status' => 'Pendente',
+        'start_at' => $manicureStart->toDateTimeString(),
+        'end_at' => $manicureEnd->toDateTimeString()
+      ]
     ]);
   }
 }

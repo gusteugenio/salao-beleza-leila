@@ -1,0 +1,78 @@
+<div class="step-container">
+  <div class="step-header">
+    <h2>2. Escolha Data e Horário</h2>
+    <p class="step-subtitle">Duração dos serviços: {{ formatDuration(getTotalDuration()) }}</p>
+  </div>
+
+  <div class="date-time-section">
+    <!-- Date Picker -->
+    <div class="date-picker-group">
+      <label for="date-input">Data</label>
+      <input
+        id="date-input"
+        type="date"
+        [(ngModel)]="selectedDate"
+        (ngModelChange)="onDateChange()"
+        class="date-input"
+      />
+      <p class="selected-date" *ngIf="selectedDate">
+        {{ formatDate(selectedDate) }}
+      </p>
+    </div>
+
+    <!-- Time Slots -->
+    <div class="time-slots-section" *ngIf="selectedDate">
+      <label>Horários Disponíveis</label>
+
+      <div *ngIf="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Carregando horários disponíveis...</p>
+      </div>
+
+      <div *ngIf="!loading && error" class="error-message">
+        {{ error }}
+      </div>
+
+      <div *ngIf="!loading && timeSlots.length === 0 && !error" class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <p>Nenhum horário disponível para esta data.</p>
+        <p class="empty-hint">Tente selecionar outra data.</p>
+      </div>
+
+      <div class="time-slots-grid" *ngIf="!loading && timeSlots.length > 0">
+        <button
+          *ngFor="let slot of timeSlots"
+          class="time-slot"
+          [class.selected]="isTimeSelected(slot.time)"
+          [disabled]="!slot.available"
+          (click)="selectTime(slot.time)"
+        >
+          {{ formatTime(slot.time) }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    <button class="btn-prev" (click)="handlePrevStep()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      Voltar
+    </button>
+    <button
+      class="btn-next"
+      [disabled]="!canProceed()"
+      (click)="handleNextStep()"
+    >
+      Próximo
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+  </div>
+</div>

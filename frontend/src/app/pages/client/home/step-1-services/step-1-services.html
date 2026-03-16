@@ -1,0 +1,76 @@
+<div class="step-container">
+  <div class="step-header">
+    <h2>1. Escolha os Serviços</h2>
+    <p class="step-subtitle">Você pode selecionar um ou mais serviços</p>
+  </div>
+
+  <div class="services-grid">
+    <div
+      *ngFor="let service of services"
+      class="service-card"
+      [class.selected]="isServiceSelected(service.id)"
+      (click)="toggleService(service.id)"
+    >
+      <div class="service-check">
+        <input
+          type="checkbox"
+          [checked]="isServiceSelected(service.id)"
+          (change)="toggleService(service.id)"
+          class="service-checkbox"
+        />
+      </div>
+
+      <div class="service-content">
+        <h3 class="service-name">{{ service.name }}</h3>
+        <div class="service-details">
+          <span class="service-duration">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            {{ formatDuration(service.duration) }}
+          </span>
+          <span class="service-price">{{ formatPrice(service.price) }}</span>
+        </div>
+      </div>
+
+      <div class="service-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary-section" *ngIf="selectedServices.length > 0">
+    <div class="summary-card">
+      <div class="summary-item">
+        <span class="summary-label">Serviços Selecionados:</span>
+        <span class="summary-value">{{ selectedServices.length }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Duração Total:</span>
+        <span class="summary-value">{{ formatDuration(getTotalDuration()) }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Valor Total:</span>
+        <span class="summary-value highlight">{{ formatPrice(getTotalPrice()) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    <button
+      class="btn-next"
+      [disabled]="!canProceed()"
+      (click)="handleNextStep()"
+    >
+      Próximo
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+  </div>
+</div>

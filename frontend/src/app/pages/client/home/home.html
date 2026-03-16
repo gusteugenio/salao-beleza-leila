@@ -1,1 +1,74 @@
-<p>home works!</p>
+<div class="home-container">
+  <!-- Success Message -->
+  <div *ngIf="success" class="alert alert-success">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    {{ success }}
+  </div>
+
+  <!-- Main Container -->
+  <div class="home-content">
+    <div class="header-section">
+      <h1>Realizar Agendamento</h1>
+      <p class="subtitle">Escolha os serviços desejados e selecione a melhor data para você</p>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="getProgress()"></div>
+      </div>
+      <div class="step-indicators">
+        <div class="step-indicator" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
+          <span class="step-number">1</span>
+          <span class="step-label">Serviços</span>
+        </div>
+        <div class="step-indicator" [class.active]="currentStep === 2" [class.completed]="currentStep > 2">
+          <span class="step-number">2</span>
+          <span class="step-label">Data/Hora</span>
+        </div>
+        <div class="step-indicator" [class.active]="currentStep === 3">
+          <span class="step-number">3</span>
+          <span class="step-label">Confirmação</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Steps Content -->
+    <div class="steps-content">
+      <!-- Step 1: Services -->
+      <div *ngIf="currentStep === 1" class="step-fade-in">
+        <app-step-1-services
+          [services]="services"
+          [selectedServices]="selectedServices"
+          (serviceToggled)="toggleService($event)"
+          (nextStep)="goToNextStep()"
+        />
+      </div>
+
+      <!-- Step 2: Date and Time -->
+      <div *ngIf="currentStep === 2" class="step-fade-in">
+        <app-step-2-datetime
+          [services]="services"
+          [selectedServices]="selectedServices"
+          [minDateTime]="minDateTime"
+          (prevStep)="goToPrevStep()"
+          (nextStep)="onDateTimeSelected($event)"
+        />
+      </div>
+
+      <!-- Step 3: Summary -->
+      <div *ngIf="currentStep === 3" class="step-fade-in">
+        <app-step-3-summary
+          [services]="services"
+          [selectedServices]="selectedServices"
+          [selectedDate]="selectedDate"
+          [selectedTime]="selectedTime"
+          (prevStep)="goToPrevStep()"
+          (appointmentCreated)="onAppointmentCreated($event)"
+        />
+      </div>
+    </div>
+  </div>
+</div>

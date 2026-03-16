@@ -25,6 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::post('/appointments/check', [AppointmentController::class, 'validateCreation']);
+    Route::get('/appointments/available-times', [AppointmentController::class, 'getAvailableTimes']);
     Route::post('/appointments', [AppointmentController::class, 'store']);
     Route::post('/appointments/{appointment}/add-services', [AppointmentController::class, 'addServices']);
     Route::get('/appointments', [AppointmentController::class, 'index']);

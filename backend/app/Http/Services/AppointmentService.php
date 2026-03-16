@@ -6,6 +6,7 @@ use App\Http\Repositories\AppointmentRepository;
 use App\Models\BusinessHour;
 use App\Models\Service;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class AppointmentService
 {
@@ -43,7 +44,7 @@ class AppointmentService
   }
 
   /**
-   * Cria agendamento
+   * Cria agendamento com cálculo sequencial de horários
    */
   public function create(array $data)
   {
@@ -55,15 +56,25 @@ class AppointmentService
       'status' => 'Pendente'
     ]);
 
-    $appointment->services()->sync(
-      $services->pluck('id')
-    );
+    // Calcula horários sequenciais para cada serviço
+    $serviceTimings = $this->calculateSequentialTimes($data['scheduled_at'], $services);
+
+    $syncData = [];
+    foreach ($serviceTimings as $serviceId => $timing) {
+      $syncData[$serviceId] = [
+        'start_at' => $timing['start_at'],
+        'end_at' => $timing['end_at'],
+        'status' => 'Pendente'
+      ];
+    }
+
+    $appointment->services()->sync($syncData);
 
     return $appointment->load('services');
   }
 
   /**
-   * Adiciona serviços
+   * Adiciona serviços a um agendamento existente
    */
   public function addServices($appointment, $servicesIds, $scheduledAt, $user)
   {
@@ -71,15 +82,64 @@ class AppointmentService
       abort(403, 'Você não pode alterar este agendamento.');
     }
 
-    $services = $this->getServices($servicesIds);
+    $newServices = $this->getServices($servicesIds);
 
-    $this->validateSchedule($scheduledAt, $services);
+    $existingServices = $appointment->services;
 
-    $appointment->services()->syncWithoutDetaching(
-      $services->pluck('id')
-    );
+    $newServicesStartTime = $scheduledAt;
+
+    $newServiceTimings = $this->calculateSequentialTimes($newServicesStartTime, $newServices);
+
+    $syncData = [];
+
+    foreach ($existingServices as $service) {
+      $syncData[$service->id] = [
+        'start_at' => $service->pivot->start_at,
+        'end_at' => $service->pivot->end_at,
+        'status' => $service->pivot->status
+      ];
+    }
+
+    foreach ($newServiceTimings as $serviceId => $timing) {
+      $syncData[$serviceId] = [
+        'start_at' => $timing['start_at'],
+        'end_at' => $timing['end_at'],
+        'status' => 'Pendente'
+      ];
+    }
+
+    $allServices = $existingServices->merge($newServices);
+    $this->validateScheduleWithTimings($syncData, $allServices, $appointment->id);
+
+    $appointment->services()->sync($syncData);
 
     return $appointment->load('services');
+  }
+
+  /**
+   * Calcula horários sequenciais para cada serviço
+   */
+  private function calculateSequentialTimes($scheduledAt, Collection $services): array
+  {
+    $currentTime = Carbon::parse($scheduledAt);
+    $serviceTimings = [];
+
+    // Ordena serviços por ID para garantir consistência
+    $sortedServices = $services->sortBy('id');
+
+    foreach ($sortedServices as $service) {
+      $startTime = $currentTime->copy();
+      $endTime = $startTime->copy()->addMinutes($service->duration);
+
+      $serviceTimings[$service->id] = [
+        'start_at' => $startTime->toDateTimeString(),
+        'end_at' => $endTime->toDateTimeString()
+      ];
+
+      $currentTime = $endTime;
+    }
+
+    return $serviceTimings;
   }
 
   /**
@@ -124,6 +184,57 @@ class AppointmentService
   }
 
   /**
+   * Valida horários com timings já calculados
+   */
+  private function validateScheduleWithTimings($syncData, $services, $excludeAppointmentId = null)
+  {
+    foreach ($syncData as $serviceId => $timing) {
+      $start = Carbon::parse($timing['start_at']);
+      $end = Carbon::parse($timing['end_at']);
+
+      $businessHour = BusinessHour::where(
+        'day_of_week',
+        $start->dayOfWeek
+      )->first();
+
+      if (!$businessHour) {
+        abort(422, 'Salão fechado neste dia.');
+      }
+
+      $this->validateBusinessHours($start, $end, $businessHour);
+
+      $this->validateLunchTime($start, $end, $businessHour);
+    }
+
+    foreach ($syncData as $serviceId => $timing) {
+      $start = Carbon::parse($timing['start_at']);
+      $end = Carbon::parse($timing['end_at']);
+
+      $appointments = $this->appointmentRepository->findByDate($start->toDateString());
+
+      foreach ($appointments as $appointment) {
+        if ($excludeAppointmentId && $appointment->id === $excludeAppointmentId) {
+          continue;
+        }
+
+        foreach ($appointment->services as $service) {
+          // Ignora serviços cancelados
+          if ($service->pivot->status === 'Cancelado') {
+            continue;
+          }
+
+          $existingStart = Carbon::parse($service->pivot->start_at);
+          $existingEnd = Carbon::parse($service->pivot->end_at);
+
+          if ($start->lt($existingEnd) && $end->gt($existingStart)) {
+            abort(422, 'Horário conflita com outro agendamento.');
+          }
+        }
+      }
+    }
+  }
+
+  /**
    * Valida horário de funcionamento
    */
   private function validateBusinessHours($start, $end, $businessHour)
@@ -151,7 +262,7 @@ class AppointmentService
       ->setTimeFromTimeString($businessHour->lunch_end);
 
     if ($start->lt($lunchEnd) && $end->gt($lunchStart)) {
-      abort(422, 'Horário conflita com o horário de almoço.');
+      abort(422, 'Horário sobrepõe o intervalo de almoço.');
     }
   }
 
@@ -160,32 +271,87 @@ class AppointmentService
    */
   private function validateConflict($start, $end)
   {
-    $appointments = $this->appointmentRepository
-      ->findByDate($start->toDateString());
+    $appointments = $this->appointmentRepository->findByDate($start->toDateString());
 
     foreach ($appointments as $appointment) {
-      $existingStart = Carbon::parse($appointment->scheduled_at);
+      foreach ($appointment->services as $service) {
+        // Ignora serviços cancelados
+        if ($service->pivot->status === 'Cancelado') {
+          continue;
+        }
 
-      $duration = $appointment->services
-        ->where('pivot.status', '!=', 'Cancelado')
-        ->sum('duration');
+        $existingStart = Carbon::parse($service->pivot->start_at);
+        $existingEnd = Carbon::parse($service->pivot->end_at);
 
-      if ($duration === 0) {
-        continue;
-      }
-
-      $existingEnd = $existingStart
-        ->copy()
-        ->addMinutes($duration);
-
-      if ($start->lt($existingEnd) && $end->gt($existingStart)) {
-        abort(422, 'Horário já possui agendamento.');
+        if ($start->lt($existingEnd) && $end->gt($existingStart)) {
+          abort(422, 'Horário conflita com outro agendamento.');
+        }
       }
     }
   }
 
   /**
-   * Lista todos
+   * Obtém horários disponíveis
+   */
+  public function getAvailableTimes($date, $durationMinutes, $user)
+  {
+    $date = Carbon::parse($date);
+
+    $businessHour = BusinessHour::where('day_of_week', $date->dayOfWeek)->first();
+
+    if (!$businessHour) {
+      return [];
+    }
+
+    $times = [];
+    $businessOpen = $date->copy()->setTimeFromTimeString($businessHour->open_time);
+    $businessClose = $date->copy()->setTimeFromTimeString($businessHour->close_time);
+    $lunchStart = $date->copy()->setTimeFromTimeString($businessHour->lunch_start);
+    $lunchEnd = $date->copy()->setTimeFromTimeString($businessHour->lunch_end);
+
+    $currentSlot = $businessOpen->copy();
+
+    while ($currentSlot->copy()->addMinutes($durationMinutes)->lte($businessClose)) {
+      $slotStart = $currentSlot->copy();
+      $slotEnd = $slotStart->copy()->addMinutes($durationMinutes);
+
+      // Verifica se sobrepõe almoço
+      if (!($slotStart->lt($lunchEnd) && $slotEnd->gt($lunchStart))) {
+        // Verifica se há conflito com agendamentos existentes
+        $conflicts = false;
+
+        $appointments = $this->appointmentRepository->findByDate($date->toDateString());
+
+        foreach ($appointments as $appointment) {
+          foreach ($appointment->services as $service) {
+            // Ignora serviços cancelados
+            if ($service->pivot->status === 'Cancelado') {
+              continue;
+            }
+
+            $existingStart = Carbon::parse($service->pivot->start_at);
+            $existingEnd = Carbon::parse($service->pivot->end_at);
+
+            if ($slotStart->lt($existingEnd) && $slotEnd->gte($existingStart)) {
+              $conflicts = true;
+              break 2;
+            }
+          }
+        }
+
+        if (!$conflicts) {
+          $times[] = $slotStart->format('H:i:s');
+        }
+      }
+
+      $currentSlot->addMinutes(30);
+    }
+
+    return $times;
+  }
+
+  /**
+   * Lista todos os agendamentos
    */
   public function all($user = null, array $filters = [])
   {
@@ -193,7 +359,7 @@ class AppointmentService
   }
 
   /**
-   * Busca um
+   * Busca um agendamento por ID
    */
   public function find($id)
   {
@@ -201,92 +367,96 @@ class AppointmentService
   }
 
   /**
-   * Atualiza agendamento
+   * Atualiza um agendamento
    */
   public function update($appointment, $data, $user)
   {
-    $scheduled = Carbon::parse($appointment->scheduled_at);
+    if ($user->role !== 'admin' && $appointment->user_id !== $user->id) {
+      abort(403, 'Você não pode alterar este agendamento.');
+    }
 
+    // Verifica se pode editar (2+ dias de antecedência)
     if ($user->role !== 'admin') {
-
-      if ($appointment->user_id !== $user->id) {
-        abort(403, 'Você não pode alterar este agendamento.');
-      }
-
-      if (Carbon::now()->addDays(2)->gt($scheduled)) {
-        abort(403, 'Alteração permitida somente até 2 dias antes.');
+      $now = Carbon::now();
+      $scheduled = Carbon::parse($appointment->scheduled_at);
+      $daysUntil = $scheduled->diffInDays($now, false); // false = não ignora sinal
+      
+      if ($daysUntil < 2) {
+        abort(403, 'Agendamentos podem ser alterados apenas com 2 ou mais dias de antecedência.');
       }
     }
 
-    if (isset($data['scheduled_at']) && $data['scheduled_at'] !== $appointment->scheduled_at) {
-      $data['status'] = 'Pendente';
+    if (isset($data['scheduled_at'])) {
+      $this->validateSchedule($data['scheduled_at'], $appointment->services);
     }
 
-    return $this->appointmentRepository
-      ->update($appointment, $data);
+    return $this->appointmentRepository->update($appointment, $data);
   }
 
   /**
-   * Confirmar agendamento
+   * Confirma um agendamento
    */
   public function confirm($appointment)
   {
-    return $this->appointmentRepository->update($appointment, ['status' => 'Confirmado']);
+    return $this->appointmentRepository->update($appointment, [
+      'status' => 'Confirmado'
+    ]);
   }
 
   /**
-   * Atualiza status de um serviço do agendamento
+   * Atualiza status de um serviço específico
    */
   public function updateServiceStatus($appointment, $serviceId, $status)
   {
-    $appointment->services()->updateExistingPivot($serviceId, ['status' => $status]);
-    $appointment->load('services');
+    $appointment->services()->updateExistingPivot($serviceId, [
+      'status' => $status
+    ]);
 
-    $allCancelled = $appointment->services->every(function ($service) {
-      return $service->pivot->status === 'Cancelado';
-    });
+    $appointment = $appointment->load('services');
 
-    if ($allCancelled && $appointment->status !== 'Cancelado') {
-      $this->cancel($appointment);
+    if ($status === 'Cancelado') {
+      $allServicesCancelled = $appointment->services
+        ->every(function ($service) {
+          return $service->pivot->status === 'Cancelado';
+        });
+
+      // Se todos os serviços estão cancelados, cancela o agendamento
+      if ($allServicesCancelled) {
+        return $this->cancel($appointment);
+      }
     }
 
     return $appointment;
   }
 
   /**
-   * Remove um serviço do agendamento
+   * Remove um serviço específico
    */
   public function removeService($appointment, $serviceId, $user)
   {
-    if ($user->role !== 'admin') {
-      if ($appointment->user_id !== $user->id) {
-        abort(403, 'Você não pode alterar este agendamento.');
-      }
-
-      $scheduled = Carbon::parse($appointment->scheduled_at);
-      if (Carbon::now()->addDays(2)->gt($scheduled)) {
-        abort(403, 'Alteração permitida somente até 2 dias antes.');
-      }
+    if ($user->role !== 'admin' && $appointment->user_id !== $user->id) {
+      abort(403, 'Você não pode alterar este agendamento.');
     }
 
     $appointment->services()->detach($serviceId);
 
+    $appointment = $appointment->load('services');
+
+    // Se não há mais serviços, cancela o agendamento
     if ($appointment->services()->count() === 0) {
-      $this->cancel($appointment);
+      return $this->cancel($appointment);
     }
 
-    return $appointment->load('services');
+    return $appointment;
   }
 
   /**
-   * Cancela agendamento
+   * Cancela um agendamento
    */
   public function cancel($appointment)
   {
-    $appointment->update([
+    return $this->appointmentRepository->update($appointment, [
       'status' => 'Cancelado'
     ]);
-
-    return $appointment;
   }
 }
