@@ -220,6 +220,11 @@ export class Step3Summary {
     });
   }
 
+  createNewAppointmentFromModal(): void {
+    this.showUnifyModal = false;
+    this.createAppointment();
+  }
+
   closeUnifyModal(): void {
     this.showUnifyModal = false;
   }

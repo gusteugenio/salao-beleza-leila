@@ -136,7 +136,7 @@
               Detalhes
             </button>
             <button
-              *ngIf="appointment.status !== 'Cancelado' && appointment.status !== 'Finalizado'"
+            *ngIf="canCancel(appointment)"
               (click)="openCancelConfirm(appointment)"
               class="action-button action-cancel"
               title="Cancelar agendamento"
@@ -162,7 +162,14 @@
   <div *ngIf="showDetailsModal && selectedAppointment" class="modal-overlay" (click)="closeDetailsModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>Detalhes do Agendamento</h2>
+        <div class="modal-header-content">
+          <svg class="modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <h2>Detalhes do Agendamento</h2>
+        </div>
         <button class="modal-close" (click)="closeDetailsModal()">&times;</button>
       </div>
       <div class="modal-body">
@@ -206,6 +213,88 @@
       </div>
       <div class="modal-footer">
         <button (click)="closeDetailsModal()" class="button-primary">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Edição -->
+  <div *ngIf="showEditModal && editingAppointment" class="modal-overlay" (click)="closeEditModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-header-content">
+          <svg class="modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19H4v-3L16.5 3.5z"></path>
+          </svg>
+          <h2>Editar Agendamento</h2>
+        </div>
+        <button class="modal-close" (click)="closeEditModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="editError" class="alert alert-error">
+          {{ editError }}
+        </div>
+        <div class="form-group">
+          <label for="edit-scheduled-at">Data e Hora</label>
+          <input
+            id="edit-scheduled-at"
+            type="datetime-local"
+            [(ngModel)]="editScheduledAt"
+            class="form-input"
+          />
+          <small class="help-text">Você pode alterar a data e hora do agendamento (disponível com 2+ dias de antecedência)</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button (click)="closeEditModal()" class="button-secondary" [disabled]="editLoading">Cancelar</button>
+        <button (click)="saveEdit()" class="button-primary" [disabled]="editLoading">
+          {{ editLoading ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmação de Cancelamento -->
+  <div *ngIf="showCancelConfirmModal && appointmentToCancel" class="modal-overlay" (click)="closeCancelConfirm()">
+    <div class="modal-content modal-confirm" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-header-content">
+          <svg class="modal-icon modal-icon-danger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+          <h2>Cancelar Agendamento</h2>
+        </div>
+        <button class="modal-close" (click)="closeCancelConfirm()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-message">
+          Tem certeza que deseja cancelar este agendamento?
+        </p>
+        <div class="appointment-summary">
+          <div class="summary-item">
+            <span class="summary-label">Serviços:</span>
+            <span class="summary-value">{{ getServiceSchedule(appointmentToCancel) }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Data:</span>
+            <span class="summary-value">{{ formatDate(appointmentToCancel.scheduled_at) }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Valor:</span>
+            <span class="summary-value">{{ formatPrice(getTotalPrice(appointmentToCancel)) }}</span>
+          </div>
+        </div>
+        <p class="warning-text">
+          ⚠️ Esta ação não pode ser desfeita.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button (click)="closeCancelConfirm()" class="button-secondary" [disabled]="editLoading">Manter Agendamento</button>
+        <button (click)="confirmCancel()" class="button-primary" [disabled]="editLoading">
+          {{ editLoading ? 'Cancelando...' : 'Confirmar Cancelamento' }}
+        </button>
       </div>
     </div>
   </div>

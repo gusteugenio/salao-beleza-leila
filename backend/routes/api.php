@@ -31,7 +31,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/appointments', [AppointmentController::class, 'index']);
     Route::get('/appointments/{appointment}', [AppointmentController::class, 'show']);
     Route::put('/appointments/{appointment}', [AppointmentController::class, 'update']);
+    Route::patch('/appointments/{appointment}', [AppointmentController::class, 'update']);
     Route::patch('/appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
+    Route::patch('/appointments/{appointment}/services/{serviceId}/status', [AppointmentController::class, 'updateServiceStatus']);
+    Route::delete('/appointments/{appointment}/services/{serviceId}', [AppointmentController::class, 'removeService']);
     Route::patch('/appointments/{appointment}/removeService/{serviceId}', [AppointmentController::class, 'removeService']);
 
     Route::get('/business-hours', [BusinessHourController::class, 'index']);

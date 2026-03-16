@@ -471,10 +471,31 @@
   top: 0;
 }
 
+.modal-header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
 .modal-header h2 {
   margin: 0;
   font-size: 1.25rem;
-  color: var(--text-dark);
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+.modal-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: var(--primary-dark);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.modal-icon-danger {
+  color: var(--error-color);
 }
 
 .modal-close {
@@ -877,4 +898,148 @@
   .detail-row .value {
     text-align: left;
   }
+}
+
+/* Estilos para novos modais */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 0.95rem;
+}
+
+.form-input {
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(255, 85, 153, 0.1);
+}
+
+.help-text {
+  color: var(--text-light);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #f9f9f9;
+  border-top: 1px solid var(--border-color);
+}
+
+.button-primary,
+.button-secondary,
+.button-danger {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.button-primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.button-primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 85, 153, 0.3);
+}
+
+.button-secondary {
+  background: var(--secondary-gray);
+  color: var(--text-dark);
+  border: 1px solid var(--border-color);
+}
+
+.button-secondary:hover:not(:disabled) {
+  background: #efefef;
+}
+
+.button-danger {
+  background: var(--error-color);
+  color: white;
+}
+
+.button-danger:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.button-primary:disabled,
+.button-secondary:disabled,
+.button-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modal-confirm {
+  max-width: 500px;
+}
+
+.confirm-message {
+  font-size: 1.1rem;
+  color: var(--text-dark);
+  margin: 0 0 1.5rem 0;
+  font-weight: 500;
+}
+
+.appointment-summary {
+  background: var(--secondary-gray);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.summary-item:last-child {
+  border-bottom: none;
+}
+
+.summary-label {
+  color: var(--text-light);
+  font-weight: 600;
+}
+
+.summary-value {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.warning-text {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin: 0;
+  border-left: 4px solid var(--warning-color);
 }

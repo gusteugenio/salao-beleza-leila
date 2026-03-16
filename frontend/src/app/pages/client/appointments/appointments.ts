@@ -112,6 +112,8 @@ export class Appointments implements OnInit {
       });
     }
 
+    filtered.sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime());
+
     this.filteredAppointments = filtered;
   }
 
@@ -201,6 +203,16 @@ export class Appointments implements OnInit {
   }
 
   /**
+   * Verifica se e possivel cancelar o agendamento (mais de 2 dias)
+   */
+  canCancel(appointment: Appointment): boolean {
+    const now = new Date();
+    const scheduled = new Date(appointment.scheduled_at);
+    const daysUntil = (scheduled.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+    return daysUntil > 2 && appointment.status !== 'Cancelado' && appointment.status !== 'Finalizado';
+  }
+
+  /**
    * Abre modal de edição
    */
   openEditModal(appointment: Appointment): void {
@@ -225,6 +237,18 @@ export class Appointments implements OnInit {
     }
 
     const scheduled = new Date(this.editScheduledAt);
+    
+    // Validacao: hora deve ser valida
+    if (isNaN(scheduled.getTime())) {
+      this.editError = 'Data e hora invalidas';
+      return;
+    }
+
+    const now = new Date();
+    if (scheduled <= now) {
+      this.editError = 'A data e hora deve ser no futuro';
+      return;
+    }
     const year = scheduled.getFullYear();
     const month = String(scheduled.getMonth() + 1).padStart(2, '0');
     const day = String(scheduled.getDate()).padStart(2, '0');

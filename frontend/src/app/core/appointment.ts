@@ -100,7 +100,7 @@ export class AppointmentApiService {
    * Atualiza um agendamento
    */
   update(appointmentId: number, data: any): Observable<Appointment> {
-    return this.http.put<Appointment>(
+    return this.http.patch<Appointment>(
       `${this.apiUrl}/appointments/${appointmentId}`,
       data
     );
@@ -113,6 +113,16 @@ export class AppointmentApiService {
     return this.http.patch<Appointment>(
       `${this.apiUrl}/appointments/${appointmentId}/removeService/${serviceId}`,
       {}
+    );
+  }
+
+  /**
+   * Atualiza o status de um serviço
+   */
+  updateServiceStatus(appointmentId: number, serviceId: number, status: string): Observable<Appointment> {
+    return this.http.patch<Appointment>(
+      `${this.apiUrl}/appointments/${appointmentId}/services/${serviceId}/status`,
+      { status }
     );
   }
 

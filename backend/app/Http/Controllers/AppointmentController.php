@@ -133,7 +133,7 @@ class AppointmentController extends Controller
     ]);
 
     return response()->json(
-      $this->appointmentService->updateServiceStatus($appointment, $serviceId, $data['status'])
+      $this->appointmentService->updateServiceStatus($appointment, $serviceId, $data['status'], $request->user())
     );
   }
 
@@ -150,10 +150,10 @@ class AppointmentController extends Controller
   /**
    * Cancelar
    */
-  public function cancel(Appointment $appointment)
+  public function cancel(Request $request, Appointment $appointment)
   {
     return response()->json(
-      $this->appointmentService->cancel($appointment)
+      $this->appointmentService->cancel($appointment, $request->user())
     );
   }
 
