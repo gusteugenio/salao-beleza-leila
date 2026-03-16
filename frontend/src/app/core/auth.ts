@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, catchError } from 'rxjs/operators';
 
 export interface User {
   id: number;
@@ -14,7 +14,7 @@ export interface User {
   providedIn: 'root',
 })
 export class Auth {
-  private apiUrl = '/api';
+  private apiUrl = 'http://localhost:8000/api';
   private userSubject = new BehaviorSubject<User | null>(null);
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
 
@@ -35,7 +35,7 @@ export class Auth {
   }
 
   login(email: string, password: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/login`, { email, password }).pipe(
+    return this.http.post(`${this.apiUrl}/login`, { email, password }).pipe(
       tap((response: any) => {
         if (response.token && response.user) {
           localStorage.setItem('auth_token', response.token);
@@ -48,7 +48,7 @@ export class Auth {
   }
 
   register(name: string, email: string, password: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/register`, { name, email, password }).pipe(
+    return this.http.post(`${this.apiUrl}/register`, { name, email, password }).pipe(
       tap((response: any) => {
         if (response.token && response.user) {
           localStorage.setItem('auth_token', response.token);
@@ -60,7 +60,19 @@ export class Auth {
     );
   }
 
-  logout(): void {
+  logout(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/logout`, {}).pipe(
+      tap(() => {
+        this.clearAuth();
+      }),
+      catchError((error) => {
+        this.clearAuth();
+        throw error;
+      })
+    );
+  }
+
+  private clearAuth(): void {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
     this.userSubject.next(null);

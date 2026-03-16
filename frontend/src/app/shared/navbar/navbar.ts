@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Auth } from '../../core/auth';
 
 @Component({
@@ -15,7 +15,7 @@ export class Navbar implements OnInit {
   isAdmin = false;
   userName = '';
 
-  constructor(public auth: Auth) {}
+  constructor(public auth: Auth, private router: Router) {}
 
   ngOnInit(): void {
     this.auth.isAuthenticated$.subscribe(isAuth => {
@@ -31,6 +31,13 @@ export class Navbar implements OnInit {
   }
 
   logout(): void {
-    this.auth.logout();
+    this.auth.logout().subscribe({
+      next: () => {
+        this.router.navigate(['/auth/login']);
+      },
+      error: () => {
+        this.router.navigate(['/auth/login']);
+      }
+    });
   }
 }
