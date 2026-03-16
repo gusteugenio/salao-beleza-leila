@@ -18,9 +18,23 @@ class AppointmentRepository
   /**
    * Lista todos
    */
-  public function all()
+  public function all($user = null, array $filters = [])
   {
-    return Appointment::with(['services', 'user'])->get();
+    $query = Appointment::with(['services', 'user']);
+
+    if ($user && $user->role !== 'admin') {
+      $query->where('user_id', $user->id);
+    }
+
+    if (!empty($filters['start_date'])) {
+      $query->whereDate('scheduled_at', '>=', $filters['start_date']);
+    }
+
+    if (!empty($filters['end_date'])) {
+      $query->whereDate('scheduled_at', '<=', $filters['end_date']);
+    }
+
+    return $query->get();
   }
 
   /**
@@ -36,12 +50,21 @@ class AppointmentRepository
    */
   public function findUserAppointmentInWeek($userId, $date)
   {
-    return Appointment::where('user_id', $userId)
+    $appointments = Appointment::where('user_id', $userId)
+      ->where('status', '<>', 'Cancelado')
       ->whereBetween('scheduled_at', [
         $date->copy()->startOfWeek(),
         $date->copy()->endOfWeek()
       ])
-      ->first();
+      ->get();
+
+    return $appointments->first(function ($appointment) {
+      $hasPending = $appointment->services->contains(function ($service) {
+        return $service->pivot->status === 'Pendente';
+      });
+
+      return $hasPending;
+    });
   }
 
   /**
@@ -51,7 +74,7 @@ class AppointmentRepository
   {
     return Appointment::with('services')
       ->whereDate('scheduled_at', $date)
-      ->where('status', 'Agendado')
+      ->whereIn('status', ['Pendente', 'Confirmado'])
       ->get();
   }
 

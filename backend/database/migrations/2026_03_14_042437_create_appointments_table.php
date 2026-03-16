@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('appointments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->enum('status', ['Agendado','Finalizado', 'Cancelado'])->default('Agendado');
+            $table->enum('status', ['Pendente', 'Confirmado', 'Cancelado'])->default('Pendente');
             $table->dateTime('scheduled_at');
             $table->timestamps();
         });

@@ -35,7 +35,7 @@ O sistema conta com regras de negócio inteligentes, como a sugestão de agrupam
 - **Sugestão Inteligente:** O sistema identifica se a cliente possui mais de um agendamento na mesma semana e sugere unificá-los em uma única data.
 
 ### Para a Gestão (Leila)
-- **Painel Operacional:** Acesso para alterar qualquer agendamento, confirmar horários e gerenciar o status de cada serviço (`Agendado`, `Finalizado`, `Cancelado`.).
+- **Painel Operacional:** Acesso para alterar qualquer agendamento, confirmar horários e gerenciar o status de cada serviço (`Pendente`, `Agendado`, `Finalizado`, `Cancelado`.).
 - **Painel Gerencial:** Dashboard com métricas e um relatório de desempenho semanal para auxiliar na tomada de decisões estratégicas.
 
 ---
@@ -48,7 +48,6 @@ O projeto foi construído utilizando tecnologias modernas, seguindo o padrão **
 *   **`Frontend`**: Single Page Application (SPA) interativa construída com **Angular (TypeScript)**.
 *   **`Banco de Dados`**: **SQL** (MySQL) para persistência e gerenciamento dos dados.
 *   **`Containerização`**: Ambiente de desenvolvimento padronizado com **Docker**.
-*   **`Testes`**: **PHPUnit** para o back-end.
 
 ---
 
@@ -131,17 +130,6 @@ Isso criará todas as tabelas necessárias no MySQL do container.
 
 ---
 
-## 🧪 Testes
-
-Para garantir a qualidade e a integridade do código, o projeto conta com uma suíte de testes unitários.
-
-#### **Backend (Laravel)**
-```bash
-# Na raiz
-docker compose exec php php artisan test```
-
----
-
 ## ✅ Checklist de Desenvolvimento
 
 Este é um checklist para guiar o desenvolvimento do projeto.
@@ -156,9 +144,8 @@ Este é um checklist para guiar o desenvolvimento do projeto.
 - [x] Implementar autenticação de usuários (clientes e admin).
 - [x] Implementar endpoints CRUD para serviços.
 - [x] Implementar endpoints de agendamento com regras de negócio.
-- [ ] Implementar endpoints de gestão (status, alteração, etc.).
-- [ ] Implementar endpoints para o dashboard gerencial.
-- [ ] Escrever testes unitários com PHPUnit.
+- [x] Implementar endpoints de gestão (status, alteração, etc.).
+- [x] Implementar endpoints para o dashboard gerencial.
 
 #### 🎨 Front-end (com Angular)
 - [ ] Criar layout principal e navegação.

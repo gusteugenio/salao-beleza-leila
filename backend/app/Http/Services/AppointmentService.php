@@ -52,7 +52,7 @@ class AppointmentService
     $appointment = $this->appointmentRepository->create([
       'user_id' => $data['user_id'],
       'scheduled_at' => $data['scheduled_at'],
-      'status' => 'Agendado'
+      'status' => 'Pendente'
     ]);
 
     $appointment->services()->sync(
@@ -67,7 +67,7 @@ class AppointmentService
    */
   public function addServices($appointment, $servicesIds, $scheduledAt, $user)
   {
-    if ($appointment->user_id !== $user->id) {
+    if ($user->role !== 'admin' && $appointment->user_id !== $user->id) {
       abort(403, 'Você não pode alterar este agendamento.');
     }
 
@@ -164,10 +164,15 @@ class AppointmentService
       ->findByDate($start->toDateString());
 
     foreach ($appointments as $appointment) {
-
       $existingStart = Carbon::parse($appointment->scheduled_at);
 
-      $duration = $appointment->services->sum('duration');
+      $duration = $appointment->services
+        ->where('pivot.status', '!=', 'Cancelado')
+        ->sum('duration');
+
+      if ($duration === 0) {
+        continue;
+      }
 
       $existingEnd = $existingStart
         ->copy()
@@ -182,9 +187,9 @@ class AppointmentService
   /**
    * Lista todos
    */
-  public function all()
+  public function all($user = null, array $filters = [])
   {
-    return $this->appointmentRepository->all();
+    return $this->appointmentRepository->all($user, $filters);
   }
 
   /**
@@ -208,13 +213,69 @@ class AppointmentService
         abort(403, 'Você não pode alterar este agendamento.');
       }
 
-      if (Carbon::now()->diffInDays($scheduled) < 2) {
+      if (Carbon::now()->addDays(2)->gt($scheduled)) {
         abort(403, 'Alteração permitida somente até 2 dias antes.');
       }
     }
 
+    if (isset($data['scheduled_at']) && $data['scheduled_at'] !== $appointment->scheduled_at) {
+      $data['status'] = 'Pendente';
+    }
+
     return $this->appointmentRepository
       ->update($appointment, $data);
+  }
+
+  /**
+   * Confirmar agendamento
+   */
+  public function confirm($appointment)
+  {
+    return $this->appointmentRepository->update($appointment, ['status' => 'Confirmado']);
+  }
+
+  /**
+   * Atualiza status de um serviço do agendamento
+   */
+  public function updateServiceStatus($appointment, $serviceId, $status)
+  {
+    $appointment->services()->updateExistingPivot($serviceId, ['status' => $status]);
+    $appointment->load('services');
+
+    $allCancelled = $appointment->services->every(function ($service) {
+      return $service->pivot->status === 'Cancelado';
+    });
+
+    if ($allCancelled && $appointment->status !== 'Cancelado') {
+      $this->cancel($appointment);
+    }
+
+    return $appointment;
+  }
+
+  /**
+   * Remove um serviço do agendamento
+   */
+  public function removeService($appointment, $serviceId, $user)
+  {
+    if ($user->role !== 'admin') {
+      if ($appointment->user_id !== $user->id) {
+        abort(403, 'Você não pode alterar este agendamento.');
+      }
+
+      $scheduled = Carbon::parse($appointment->scheduled_at);
+      if (Carbon::now()->addDays(2)->gt($scheduled)) {
+        abort(403, 'Alteração permitida somente até 2 dias antes.');
+      }
+    }
+
+    $appointment->services()->detach($serviceId);
+
+    if ($appointment->services()->count() === 0) {
+      $this->cancel($appointment);
+    }
+
+    return $appointment->load('services');
   }
 
   /**

@@ -19,20 +19,14 @@ class AppointmentSeeder extends Seeder
     $manicure = Service::where('name', 'Manicure')->first();
     $pedicure = Service::where('name', 'Pedicure')->first();
 
-    // Agendamento cliente 1
     $appt1 = Appointment::create([
       'user_id' => $cliente1->id,
-      'scheduled_at' => Carbon::now()->addDays(1),
-      'status' => 'Agendado',
+      'scheduled_at' => Carbon::now()->next(Carbon::MONDAY)->setTime(9, 30),
+      'status' => 'Pendente',
     ]);
-    $appt1->services()->attach([$corte->id, $manicure->id]);
-
-    // Agendamento cliente 2
-    $appt2 = Appointment::create([
-      'user_id' => $cliente2->id,
-      'scheduled_at' => Carbon::now()->addDays(2),
-      'status' => 'Agendado',
+    $appt1->services()->attach([
+      $corte->id => ['status' => 'Pendente'],
+      $manicure->id => ['status' => 'Pendente']
     ]);
-    $appt2->services()->attach([$pedicure->id]);
   }
 }

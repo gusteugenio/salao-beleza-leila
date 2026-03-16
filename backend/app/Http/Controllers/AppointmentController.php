@@ -21,8 +21,9 @@ class AppointmentController extends Controller
   public function validateCreation(Request $request)
   {
     $data = $request->validate([
-      'scheduled_at' => 'required|date',
-      'services' => 'required|array'
+      'scheduled_at' => 'required|date_format:Y-m-d H:i:s',
+      'services' => 'required|array|min:1',
+      'services.*' => 'integer|exists:services,id'
     ]);
 
     $data['user_id'] = $request->user()->id;
@@ -38,8 +39,9 @@ class AppointmentController extends Controller
   public function store(Request $request)
   {
     $data = $request->validate([
-      'scheduled_at' => 'required|date',
-      'services' => 'required|array'
+      'scheduled_at' => 'required|date_format:Y-m-d H:i:s',
+      'services' => 'required|array|min:1',
+      'services.*' => 'integer|exists:services,id'
     ]);
 
     $data['user_id'] = $request->user()->id;
@@ -56,8 +58,9 @@ class AppointmentController extends Controller
   public function addServices(Request $request, Appointment $appointment)
   {
     $data = $request->validate([
-      'services' => 'required|array',
-      'scheduled_at' => 'required|date'
+      'services' => 'required|array|min:1',
+      'services.*' => 'integer|exists:services,id',
+      'scheduled_at' => 'required|date_format:Y-m-d H:i:s'
     ]);
 
     return response()->json(
@@ -73,10 +76,10 @@ class AppointmentController extends Controller
   /**
    * Listar todos
    */
-  public function index()
+  public function index(Request $request)
   {
     return response()->json(
-      $this->appointmentService->all()
+      $this->appointmentService->all($request->user(), $request->all())
     );
   }
 
@@ -96,8 +99,9 @@ class AppointmentController extends Controller
   public function update(Request $request, Appointment $appointment)
   {
     $data = $request->validate([
-      'scheduled_at' => 'sometimes|date',
-      'services' => 'sometimes|array'
+      'scheduled_at' => 'sometimes|date_format:Y-m-d H:i:s',
+      'services' => 'sometimes|array|min:1',
+      'services.*' => 'integer|exists:services,id'
     ]);
 
     return response()->json(
@@ -106,6 +110,40 @@ class AppointmentController extends Controller
         $data,
         $request->user()
       )
+    );
+  }
+
+  /**
+   * Confirmar agendamento
+   */
+  public function confirm(Appointment $appointment)
+  {
+    return response()->json(
+      $this->appointmentService->confirm($appointment)
+    );
+  }
+
+  /**
+   * Atualiza status de um serviço específico
+   */
+  public function updateServiceStatus(Request $request, Appointment $appointment, $serviceId)
+  {
+    $data = $request->validate([
+      'status' => 'required|in:Pendente,Finalizado,Cancelado'
+    ]);
+
+    return response()->json(
+      $this->appointmentService->updateServiceStatus($appointment, $serviceId, $data['status'])
+    );
+  }
+
+  /**
+   * Remove um serviço específico
+   */
+  public function removeService(Request $request, Appointment $appointment, $serviceId)
+  {
+    return response()->json(
+      $this->appointmentService->removeService($appointment, $serviceId, $request->user())
     );
   }
 

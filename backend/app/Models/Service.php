@@ -18,6 +18,6 @@ class Service extends Model
     // Relacionamento N:N com appointments
     public function appointments()
     {
-        return $this->belongsToMany(Appointment::class, 'appointment_service');
+        return $this->belongsToMany(Appointment::class, 'appointment_service')->withPivot('status')->withTimestamps();
     }
 }
