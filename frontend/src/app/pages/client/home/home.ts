@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ServiceApiService, Service, Appointment } from '../../../core/appointment';
+import { Auth } from '../../../core/auth';
 import { Step1Services } from './step-1-services/step-1-services';
 import { Step2DateTime } from './step-2-datetime/step-2-datetime';
 import { Step3Summary } from './step-3-summary/step-3-summary';
@@ -27,10 +28,19 @@ export class Home implements OnInit {
   constructor(
     private serviceApi: ServiceApiService,
     private router: Router,
+    private auth: Auth,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
+    // Bloqueia acesso de admin à página de agendamento
+    this.auth.user$.subscribe(user => {
+      if (user?.role === 'admin') {
+        this.router.navigate(['/admin/dashboard']);
+        return;
+      }
+    });
+    
     this.loadServices();
     this.setMinDateTime();
   }

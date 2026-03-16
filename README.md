@@ -131,7 +131,7 @@ Este é um checklist para guiar o desenvolvimento do projeto.
 #### 🎨 Front-end (com Angular)
 - [x] Criar layout principal e navegação.
 - [x] Desenvolver telas de autenticação (login/registro).
-- [ ] Desenvolver telas da área do cliente (agendar, histórico).
+- [x] Desenvolver telas da área do cliente (agendar, histórico).
 - [ ] Desenvolver telas da área de gestão (dashboard, lista de agendamentos).
 
 ---
