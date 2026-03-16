@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>Cabeleila Leila - Sistema de Agendamento</h1>
+  <h1>Cabeleleila Leila Leila - Sistema de Agendamento</h1>
   <p>Sistema completo para gestão de agendamentos online, permitindo que clientes marquem serviços e a proprietária (Leila) gerencie o negócio com visão operacional e gerencial.</p>
 </div>
 
@@ -16,7 +16,7 @@
 ## 📋 Sobre o Sistema
 
 
-O projeto **Cabeleila Leila** é um sistema web personalizado que resolve o problema de agendamentos manuais, oferecendo uma interface amigável para clientes e um painel de controle robusto para a Leila. O objetivo é modernizar e otimizar a gestão do salão, aprimorando a experiência do cliente e fornecendo ferramentas para uma visão clara do desempenho do negócio.
+O projeto **Cabeleleila Leila Leila** é um sistema web personalizado que resolve o problema de agendamentos manuais, oferecendo uma interface amigável para clientes e um painel de controle robusto para a Leila. O objetivo é modernizar e otimizar a gestão do salão, aprimorando a experiência do cliente e fornecendo ferramentas para uma visão clara do desempenho do negócio.
 
 O sistema conta com regras de negócio inteligentes, como a sugestão de agrupamento de serviços na mesma semana e restrições de alteração baseadas na data do agendamento.
 
@@ -148,7 +148,7 @@ Este é um checklist para guiar o desenvolvimento do projeto.
 - [x] Implementar endpoints para o dashboard gerencial.
 
 #### 🎨 Front-end (com Angular)
-- [ ] Criar layout principal e navegação.
+- [x] Criar layout principal e navegação.
 - [ ] Desenvolver telas de autenticação (login/registro).
 - [ ] Desenvolver telas da área do cliente (agendar, histórico).
 - [ ] Desenvolver telas da área de gestão (dashboard, lista de agendamentos).
