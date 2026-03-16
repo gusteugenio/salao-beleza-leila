@@ -41,9 +41,6 @@ services:
       - "4200:4200"
     volumes:
       - ./frontend:/app
-      - /app/node_modules
-    depends_on:
-      - nginx
     networks:
       - app-network
 
