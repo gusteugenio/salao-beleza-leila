@@ -1,13 +1,14 @@
 import { Routes } from '@angular/router';
 import { Login } from './pages/auth/login/login';
 import { Register } from './pages/auth/register/register';
+import { Landing } from './pages/landing/landing';
 import { Home as ClientHome } from './pages/client/home/home';
 import { Appointments as ClientAppointments } from './pages/client/appointments/appointments';
 import { Dashboard } from './pages/admin/dashboard/dashboard';
 import { Appointments as AdminAppointments } from './pages/admin/appointments/appointments';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/client/home', pathMatch: 'full' },
+  { path: '', component: Landing },
   {
     path: 'auth',
     children: [

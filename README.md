@@ -15,14 +15,17 @@
 
 ## 📋 Sobre o Sistema
 
-
 O projeto **Cabeleleila Leila** é um sistema web personalizado que resolve o problema de agendamentos manuais, oferecendo uma interface amigável para clientes e um painel de controle robusto para a Leila. O objetivo é modernizar e otimizar a gestão do salão, aprimorando a experiência do cliente e fornecendo ferramentas para uma visão clara do desempenho do negócio.
 
-O sistema conta com regras de negócio inteligentes, como a sugestão de agrupamento de serviços na mesma semana e restrições de alteração baseadas na data do agendamento.
+### Diferenciais
+O sistema conta com **lógica de negócio avançada** que vai além de um simples agendador:
+- ✅ **Validação automática** de horários comerciais, intervalo de almoço e conflitos de agendamento
+- ✅ **Sugestão inteligente** de agrupamento de serviços na mesma semana (ASK_UNIFY)
+- ✅ **Recalcular sequencial** de horários quando agendamentos são alterados
+- ✅ **Dashboard gerencial** com análise de desempenho semanal em tempo real
+- ✅ **Regras de negócio configuráveis** (expediente, almoço, duração dos serviços)
 
-<br>
 
----
 
 ## ✨ Funcionalidades Principais
 
@@ -35,8 +38,34 @@ O sistema conta com regras de negócio inteligentes, como a sugestão de agrupam
 - **Sugestão Inteligente:** O sistema identifica se a cliente possui mais de um agendamento na mesma semana e sugere unificá-los em uma única data.
 
 ### Para a Gestão (Leila)
-- **Painel Operacional:** Acesso para alterar qualquer agendamento, confirmar horários e gerenciar o status de cada serviço (`Pendente`, `Agendado`, `Finalizado`, `Cancelado`.).
-- **Painel Gerencial:** Dashboard com métricas e um relatório de desempenho semanal para auxiliar na tomada de decisões estratégicas.
+- **Painel Operacional:** Acesso completo para alterar qualquer agendamento, confirmar horários e gerenciar o status de cada serviço (`Pendente`, `Finalizado`, `Cancelado`).
+- **Painel Gerencial:** Dashboard com métricas e um relatório de desempenho semanal para auxiliar na tomada de decisões estratégicas (receita semanal, serviços concluídos, taxa de cancelamento, etc).
+
+---
+
+## 🧠 Inteligência de Negócio
+
+O sistema implementa validações e regras inteligentes para otimizar o funcionamento do salão:
+
+### ⏰ Gestão de Horários
+- **Validação de Expediente:** O sistema verifica automaticamente se o horário solicitado está dentro do horário de funcionamento configurado (ex: 09:00 às 18:00).
+- **Intervalo de Almoço:** Bloqueia agendamentos durante o intervalo de almoço (ex: 12:00 às 13:00), garantindo que serviços não sejam marcados neste período.
+- **Duração Sequencial:** Cada serviço calcula automaticamente seu horário final baseado em sua duração, evitando sobreposição com serviços subsequentes.
+
+### 🔄 Resolução Inteligente de Conflitos
+- **Detecção de Conflitos:** Impede agendamento de serviços que conflitariam com outros já marcados no mesmo horário.
+- **Sugestão de Agrupamento:** Se uma cliente possui um agendamento na mesma semana, o sistema detecta isso automaticamente e sugere agrupar os novos serviços na mesma data, **economizando tempo e melhorando a experiência**.
+- **Validação de Semana:** Identifica todos os agendamentos da cliente na mesma semana para análise anterior à confirmação.
+
+### 📅 Flexibilidade de Alterações
+- Clientes podem alterar agendamentos com até **2 dias de antecedência** via sistema.
+- Alterações com menos de 2 dias devem ser feitas por telefone (proteção do tempo de preparo).
+- Admin tem acesso total para alterar qualquer agendamento com **recalcular automático dos horários dos serviços**.
+
+### 📊 Rastreamento Operacional
+- **Gestão de Status:** Cada serviço pode ter status independente (`Pendente`, `Finalizado`, `Cancelado`).
+- **Histórico Completo:** Todo agendamento mantém histórico de alterações para auditoria.
+- **Confirmação de Presença:** Admin pode confirmar presença do cliente ou cancelar agendamento.
 
 ---
 
@@ -132,7 +161,7 @@ Este é um checklist para guiar o desenvolvimento do projeto.
 - [x] Criar layout principal e navegação.
 - [x] Desenvolver telas de autenticação (login/registro).
 - [x] Desenvolver telas da área do cliente (agendar, histórico).
-- [ ] Desenvolver telas da área de gestão (dashboard, lista de agendamentos).
+- [x] Desenvolver telas da área de gestão (dashboard, lista de agendamentos).
 
 ---
 
