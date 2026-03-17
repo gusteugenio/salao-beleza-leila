@@ -105,6 +105,8 @@ cd salao-beleza-leila
 touch .env
 ```
 
+> ⚠️ No Windows, execute via WSL ou Git Bash.
+
 Abra o `.env` e configure as variáveis do banco de dados:
 
 | Variável              | Descrição                    |
@@ -120,7 +122,6 @@ Abra o `.env` e configure as variáveis do banco de dados:
 cd backend
 cp .env.example .env
 ```
-> ⚠️ No Windows, execute via WSL ou Git Bash.
 
 **4. Configure as variáveis de conexão com o banco:**
 
@@ -169,6 +170,31 @@ Senha: password123
 
 ---
 
+
+## 🔧 Solução de Problemas
+
+### ❌ Erro de CORS - "Permission denied" no arquivo de log
+
+Se receber o erro de CORS com a mensagem:
+```
+The stream or file "/var/www/storage/logs/laravel.log" could not be opened in append mode: Failed to open stream: Permission denied
+```
+
+**Solução:** Execute o comando abaixo para corrigir as permissões dos diretórios `storage` e `bootstrap/cache`:
+
+```bash
+docker compose exec php bash -c "chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache && chmod -R 775 /var/www/storage /var/www/bootstrap/cache"
+```
+
+Após isso, limpe o arquivo de log corrompido:
+
+```bash
+docker compose exec php bash -c "rm -f /var/www/storage/logs/laravel.log && touch /var/www/storage/logs/laravel.log && chown www-data:www-data /var/www/storage/logs/laravel.log"
+```
+
+Agora tente fazer a requisição novamente no frontend. Os headers de CORS devem ser enviados corretamente.
+
+---
 ## ✅ Checklist de Desenvolvimento
 
 Este é um checklist para guiar o desenvolvimento do projeto.
@@ -236,29 +262,3 @@ As screenshots e documentação visual do sistema podem ser encontradas em [`doc
     <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" />
   </a>
 </div>
-
----
-
-## 🔧 Solução de Problemas
-
-### ❌ Erro de CORS - "Permission denied" no arquivo de log
-
-Se receber o erro de CORS com a mensagem:
-```
-The stream or file "/var/www/storage/logs/laravel.log" could not be opened in append mode: Failed to open stream: Permission denied
-```
-
-**Solução:** Execute o comando abaixo para corrigir as permissões dos diretórios `storage` e `bootstrap/cache`:
-
-```bash
-docker compose exec php bash -c "chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache && chmod -R 775 /var/www/storage /var/www/bootstrap/cache"
-```
-
-Após isso, limpe o arquivo de log corrompido:
-
-```bash
-docker compose exec php bash -c "rm -f /var/www/storage/logs/laravel.log && touch /var/www/storage/logs/laravel.log && chown www-data:www-data /var/www/storage/logs/laravel.log"
-```
-
-Agora tente fazer a requisição novamente no frontend. Os headers de CORS devem ser enviados corretamente.
-
