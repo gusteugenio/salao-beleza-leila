@@ -140,6 +140,25 @@ Após a execução, os serviços estarão disponíveis em:
 
 ---
 
+## 🔐 Credenciais de Acesso (Padrão)
+
+O sistema vem com dados de teste já criados pelas seeds. Use as seguintes credenciais para acessar:
+
+### Admin/Gestão
+```
+Email: admin@salao.com
+Senha: password123
+```
+
+### Clientes de Teste
+```
+Email: ana@email.com
+Senha: password123
+```
+(Ou qualquer um dos clientes: beatriz@email.com, carolina@email.com, diana@email.com, eduarda@email.com)
+
+---
+
 ## ✅ Checklist de Desenvolvimento
 
 Este é um checklist para guiar o desenvolvimento do projeto.
@@ -165,7 +184,38 @@ Este é um checklist para guiar o desenvolvimento do projeto.
 
 ---
 
-## 📬 Contato
+## 📸 Imagens do Sistema
+
+As screenshots e documentação visual do sistema podem ser encontradas em [`docs/images/`](./docs/images):
+
+### Autenticação
+- `login.png` - Tela de login
+- `cadastro.png` - Tela de registro de usuários
+
+### Interface do Cliente
+- `lista-servicos.png` - Listagem de serviços disponíveis
+- `escolha-horarios.png` - Seleção de data e horário
+- `confirmacao-agendamento.png` - Confirmação do agendamento
+- `lista-agendamentos-cliente.png` - Histórico de agendamentos do cliente
+- `editar-agendamento.png` - Alteração de agendamento
+- `detalhes-agendamento.png` - Detalhes completos do agendamento
+
+### Dashboard Admin/Gestão
+- `dashboard.png` - Visão geral e métricas gerenciais
+- `lista-agendamentos-admin.png` - Lista completa de agendamentos
+- `detalhes-agendamento-admin.png` - Detalhes de agendamento
+- `editar-agendamento-servicos.png` - Editador de serviços do agendamento
+
+### Landing Page
+- `inicio.png` - Página inicial
+- `sobre-nos.png` - Seção "Sobre Nós"
+- `carrossel-servicos.png` - Carrossel de serviços destacados
+- `avaliacoes.png` - Avaliações de clientes
+- `contat.png` - Informações de contato
+
+---
+
+## �📬 Contato
 
 <div align="center">
   <p>Desenvolvido por <strong>Gustavo Eugênio</strong></p>
