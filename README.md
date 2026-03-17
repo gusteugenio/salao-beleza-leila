@@ -80,6 +80,15 @@ O projeto foi construído utilizando tecnologias modernas, seguindo o padrão **
 ---
 
 ## 🚀 Como Rodar o Projeto
+### ⚠️ Requisitos de Sistema
+
+> **Importante:** Este projeto utiliza scripts bash e comandos Unix. Para funcionar corretamente, é necessário:
+> - 🐧 **Linux** ou
+> - 🪟 **Windows com WSL 2 (Windows Subsystem for Linux 2)** ou
+> - 💻 **macOS**
+>
+> Esses comandos **não funcionam nativamente no PowerShell/CMD do Windows**. Use WSL ou um terminal Unix compatível.
+
 
 Para subir todo o ecossistema (PHP, MySQL, Nginx e Node) de forma automatizada:
 
@@ -111,6 +120,7 @@ Abra o `.env` e configure as variáveis do banco de dados:
 cd backend
 cp .env.example .env
 ```
+> ⚠️ No Windows, execute via WSL ou Git Bash.
 
 **4. Configure as variáveis de conexão com o banco:**
 
@@ -128,7 +138,8 @@ DB_PASSWORD=senha_definida_no_.env_da_raiz
 **5. Execute o script de setup:**
 
 ```bash
-# Sube os containers
+# Suba os containers
+cd -
 bash setup.sh
 ```
 
@@ -214,7 +225,7 @@ As screenshots e documentação visual do sistema podem ser encontradas em [`doc
 
 ---
 
-## �📬 Contato
+## 📬 Contato
 
 <div align="center">
   <p>Desenvolvido por <strong>Gustavo Eugênio</strong></p>
