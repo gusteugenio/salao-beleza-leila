@@ -86,7 +86,15 @@ class AppointmentService
 
     $existingServices = $appointment->services;
 
-    $newServicesStartTime = $scheduledAt;
+    // Encontra a última hora do último serviço existente
+    $lastEndTime = null;
+    foreach ($existingServices->sortBy(function ($service) {
+      return $service->pivot->end_at;
+    }) as $service) {
+      $lastEndTime = $service->pivot->end_at;
+    }
+
+    $newServicesStartTime = $lastEndTime ?? $scheduledAt;
 
     $newServiceTimings = $this->calculateSequentialTimes($newServicesStartTime, $newServices);
 
@@ -498,5 +506,13 @@ class AppointmentService
     return $this->appointmentRepository->update($appointment, [
       'status' => 'Cancelado'
     ]);
+  }
+
+  /**
+   * Obtém todos os agendamentos com filtros
+   */
+  public function getAllAppointments(array $filters = [])
+  {
+    return $this->appointmentRepository->getAllAppointments($filters);
   }
 }

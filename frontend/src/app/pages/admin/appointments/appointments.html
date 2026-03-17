@@ -1,1 +1,261 @@
-<p>appointments works!</p>
+<div class="appointments-container">
+  <!-- Header -->
+  <div class="appointments-header">
+    <div class="header-content">
+      <h1>Agendamentos</h1>
+      <p class="subtitle">Gerencie todos os agendamentos</p>
+    </div>
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="success" class="alert alert-success">
+    {{ success }}
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="alert alert-error">
+    {{ error }}
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="filter-group">
+      <label>Status</label>
+      <select class="filter-select" [(ngModel)]="filterStatus" (change)="applyFilters()">
+        <option *ngFor="let status of statuses" [value]="status.value">
+          {{ status.label }}
+        </option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Cliente</label>
+      <select class="filter-select" [(ngModel)]="filterClientId" (change)="applyFilters()">
+        <option value="">Todos os Clientes</option>
+        <option *ngFor="let client of clients" [value]="client.id">
+          {{ client.name }}
+        </option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Data De</label>
+      <input type="date" class="filter-input" [(ngModel)]="filterDateFrom" (change)="applyFilters()">
+    </div>
+
+    <div class="filter-group">
+      <label>Data Até</label>
+      <input type="date" class="filter-input" [(ngModel)]="filterDateTo" (change)="applyFilters()">
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-section">
+    <div class="loading-spinner"></div>
+    <p>Carregando agendamentos...</p>
+  </div>
+
+  <!-- Appointments List -->
+  <div *ngIf="!loading" class="appointments-section">
+    <div *ngIf="filteredAppointments.length === 0" class="empty-state">
+      <div class="empty-icon">📅</div>
+      <p class="empty-message">Nenhum agendamento encontrado</p>
+    </div>
+
+    <div *ngIf="filteredAppointments.length > 0" class="appointments-list">
+      <div *ngFor="let appointment of filteredAppointments" class="appointment-card" [class]="'card-' + getStatusClass(appointment.status)" (click)="openDetailsModal(appointment)">
+        <div class="appointment-header">
+          <div class="appointment-date">
+            <div class="date-day">{{ appointment.scheduled_at | date: 'dd' }}</div>
+            <div class="date-info">
+              <div class="date-month">{{ appointment.scheduled_at | date: 'MMM' }}</div>
+              <div class="date-year">{{ appointment.scheduled_at | date: 'yyyy' }}</div>
+            </div>
+          </div>
+
+          <div class="appointment-info">
+            <div class="appointment-title">
+              <h3>{{ appointment.user?.name }}</h3>
+              <span class="appointment-time">{{ appointment.scheduled_at | date: 'HH:mm' }}</span>
+            </div>
+          </div>
+
+          <div class="appointment-actions">
+            <button class="btn-edit" (click)="openEditModal(appointment); $event.stopPropagation()">Editar</button>
+            <span class="status-badge" [class]="'status-' + getStatusClass(appointment.status)">
+              {{ appointment.status }}
+            </span>
+          </div>
+        </div>
+
+        <div class="appointment-body">
+          <div class="appointment-services">
+            <h4>Serviços</h4>
+            <div class="services-list">
+              <div *ngFor="let service of appointment.services" class="service-item">
+                <div class="service-name">{{ service.name }}</div>
+                <div class="service-time">
+                  {{ formatServiceTime(service.pivot!.start_at) }} - {{ formatServiceTime(service.pivot!.end_at) }}
+                </div>
+                <div class="service-price">{{ formatPrice(service.price) }}</div>
+                <div class="service-status">
+                  <button class="btn-status" (click)="openStatusModal(service, appointment); $event.stopPropagation()" [class]="'status-' + service.pivot!.status.toLowerCase()">
+                    {{ service.pivot!.status }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="appointment-total">
+            <span class="total-label">Total:</span>
+            <span class="total-price">{{ formatPrice(getTotalPrice(appointment)) }}</span>
+          </div>
+        </div>
+
+        <div class="appointment-footer">
+          <button *ngIf="appointment.status !== 'Confirmado'" class="btn btn-success" (click)="confirmAppointment(appointment); $event.stopPropagation()">Confirmar</button>
+          <button *ngIf="appointment.status !== 'Cancelado'" class="btn btn-error" (click)="cancelAppointment(appointment); $event.stopPropagation()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details Modal -->
+  <div *ngIf="showDetailsModal" class="modal-overlay" (click)="closeDetailsModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Detalhes do Agendamento</h2>
+        <button class="modal-close" (click)="closeDetailsModal()">&times;</button>
+      </div>
+
+      <div class="modal-body" *ngIf="selectedAppointment">
+        <div class="detail-section">
+          <h3>Cliente</h3>
+          <p>{{ selectedAppointment.user?.name }}</p>
+        </div>
+
+        <div class="detail-section">
+          <h3>Data e Hora</h3>
+          <p>{{ formatDate(selectedAppointment.scheduled_at) }}</p>
+        </div>
+
+        <div class="detail-section">
+          <h3>Status</h3>
+          <p>{{ selectedAppointment.status }}</p>
+        </div>
+
+        <div class="detail-section">
+          <h3>Serviços</h3>
+          <div class="services-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Serviço</th>
+                  <th>Horário</th>
+                  <th>Preço</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let service of selectedAppointment.services">
+                  <td>{{ service.name }}</td>
+                  <td>{{ formatServiceTime(service.pivot!.start_at) }} - {{ formatServiceTime(service.pivot!.end_at) }}</td>
+                  <td>{{ formatPrice(service.price) }}</td>
+                  <td>{{ service.pivot!.status }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="detail-section total">
+          <strong>Total: {{ formatPrice(getTotalPrice(selectedAppointment)) }}</strong>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeDetailsModal()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div *ngIf="showEditModal" class="modal-overlay" (click)="closeEditModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Editar Agendamento</h2>
+        <button class="modal-close" (click)="closeEditModal()">&times;</button>
+      </div>
+
+      <div class="modal-body" *ngIf="editingAppointment">
+        <div *ngIf="editError" class="alert alert-error">
+          {{ editError }}
+        </div>
+
+        <div class="form-group">
+          <label for="date">Data e Hora</label>
+          <input id="date" type="datetime-local" class="form-input" [(ngModel)]="editScheduledAt">
+          <small class="help-text">Admin pode editar sem restrição de 2 dias</small>
+        </div>
+
+        <div class="form-group">
+          <h4>Serviços</h4>
+          <div class="services-list">
+            <div *ngFor="let service of editingAppointment.services" class="service-item">
+              <div class="service-name">{{ service.name }}</div>
+              <div class="service-time">
+                {{ formatServiceTime(service.pivot!.start_at) }} - {{ formatServiceTime(service.pivot!.end_at) }}
+              </div>
+              <div class="service-price">{{ formatPrice(service.price) }}</div>
+              <button class="btn btn-sm btn-secondary" (click)="openStatusModal(service)">
+                Status: {{ service.pivot!.status }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeEditModal()" [disabled]="editLoading">Cancelar</button>
+        <button class="btn btn-primary" (click)="saveEdit()" [disabled]="editLoading">
+          {{ editLoading ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Service Status Modal -->
+  <div *ngIf="showStatusModal" class="modal-overlay" (click)="closeStatusModal()">
+    <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Alterar Status do Serviço</h2>
+        <button class="modal-close" (click)="closeStatusModal()">&times;</button>
+      </div>
+
+      <div class="modal-body" *ngIf="selectedService">
+        <div class="form-group">
+          <label>Serviço</label>
+          <p class="form-value">{{ selectedService.name }}</p>
+        </div>
+
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select id="status" class="form-input" [(ngModel)]="selectedServiceStatus">
+            <option *ngFor="let status of serviceStatuses" [value]="status">
+              {{ status }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeStatusModal()" [disabled]="editLoading">Cancelar</button>
+        <button class="btn btn-primary" (click)="saveServiceStatus()" [disabled]="editLoading">
+          {{ editLoading ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

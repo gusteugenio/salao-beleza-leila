@@ -53,7 +53,7 @@
         </div>
         <div class="metric-info">
           <h3>Receita Total</h3>
-          <p class="metric-value">{{ formatCurrency(performance?.total_revenue || 0) }}</p>
+          <p class="metric-value">{{ formatCurrency(performance!.total_revenue || 0) }}</p>
           <span class="metric-label">Semana</span>
         </div>
       </div>
@@ -67,7 +67,7 @@
         </div>
         <div class="metric-info">
           <h3>Serviços Finalizados</h3>
-          <p class="metric-value">{{ performance?.finished_services || 0 }}</p>
+          <p class="metric-value">{{ performance!.finished_services || 0 }}</p>
           <span class="metric-label">{{ formatNumber(getCompletionRate()) }}% de conclusão</span>
         </div>
       </div>
@@ -98,7 +98,7 @@
         </div>
         <div class="metric-info">
           <h3>Serviços Cancelados</h3>
-          <p class="metric-value">{{ performance?.cancellations || 0 }}</p>
+          <p class="metric-value">{{ performance!.cancellations || 0 }}</p>
           <span class="metric-label">{{ formatNumber(getCancellationRate()) }}% de cancelamento</span>
         </div>
       </div>
@@ -149,9 +149,9 @@
             <div class="stat-box">
               <span class="stat-box-label">Status</span>
               <span class="stat-box-value stat-status">
-                <span class="status-completed">✓{{ performance?.finished_services || 0 }}</span>
-                <span class="status-pending">◐{{ getPendingServices() }}</span>
-                <span class="status-cancelled">✕{{ performance?.cancellations || 0 }}</span>
+              <span class="status-completed">✓{{ performance!.finished_services || 0 }}</span>
+              <span class="status-pending">◐{{ getPendingServices() }}</span>
+              <span class="status-cancelled">✕{{ performance!.cancellations || 0 }}</span>
               </span>
             </div>
           </div>
@@ -164,16 +164,16 @@
         <div class="chart-content revenue-info">
           <div class="revenue-item">
             <span class="revenue-label">Receita da Semana</span>
-            <span class="revenue-value">{{ formatCurrency(performance?.total_revenue || 0) }}</span>
+            <span class="revenue-value">{{ formatCurrency(performance!.total_revenue || 0) }}</span>
           </div>
           <div class="revenue-item">
             <span class="revenue-label">Serviços por Status</span>
             <span class="revenue-value">
-              <span style="color: #10b981;">{{ performance?.finished_services || 0 }}</span>
+              <span style="color: #10b981;">{{ performance!.finished_services || 0 }}</span>
               /
               <span style="color: #f59e0b;">{{ getPendingServices() }}</span>
               /
-              <span style="color: #ef4444;">{{ performance?.cancellations || 0 }}</span>
+              <span style="color: #ef4444;">{{ performance!.cancellations || 0 }}</span>
             </span>
           </div>
           <div class="revenue-item">
@@ -198,10 +198,10 @@
         <p class="summary-text">
           Foram realizados <strong>{{ getTotalAppointments() }}</strong> agendamentos com
           <strong>{{ getTotalServices() }}</strong> serviços solicitados.
-          <strong>{{ performance?.finished_services || 0 }}</strong> serviços foram finalizados,
+          <strong>{{ performance!.finished_services || 0 }}</strong> serviços foram finalizados,
           <strong>{{ getPendingServices() }}</strong> estão pendentes,
-          <strong>{{ performance?.cancellations || 0 }}</strong> foram cancelados,
-          gerando uma receita total de <strong>{{ formatCurrency(performance?.total_revenue || 0) }}</strong>.
+          <strong>{{ performance!.cancellations || 0 }}</strong> foram cancelados,
+          gerando uma receita total de <strong>{{ formatCurrency(performance!.total_revenue || 0) }}</strong>.
         </p>
       </div>
     </div>

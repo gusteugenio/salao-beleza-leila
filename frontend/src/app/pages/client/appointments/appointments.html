@@ -149,7 +149,7 @@
               </svg>
               Cancelar
             </button>
-            <div *ngIf="!canEdit(appointment) && appointment.status !== 'Cancelado' && appointment.status !== 'Finalizado'" class="edit-locked">
+            <div *ngIf="!canEdit(appointment) && appointment.status !== 'Cancelado' && appointment.status !== 'Confirmado'" class="edit-locked">
               <span class="locked-tooltip">Alterações disponíveis apenas com 2+ dias de antecedência</span>
             </div>
           </div>

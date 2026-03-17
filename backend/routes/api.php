@@ -27,15 +27,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/appointments/check', [AppointmentController::class, 'validateCreation']);
     Route::get('/appointments/available-times', [AppointmentController::class, 'getAvailableTimes']);
     Route::post('/appointments', [AppointmentController::class, 'store']);
-    Route::post('/appointments/{appointment}/add-services', [AppointmentController::class, 'addServices']);
+    Route::post('/appointments/{appointment}/add-services', [AppointmentController::class, 'addServices'])->whereNumber('appointment');
     Route::get('/appointments', [AppointmentController::class, 'index']);
-    Route::get('/appointments/{appointment}', [AppointmentController::class, 'show']);
-    Route::put('/appointments/{appointment}', [AppointmentController::class, 'update']);
-    Route::patch('/appointments/{appointment}', [AppointmentController::class, 'update']);
-    Route::patch('/appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
-    Route::patch('/appointments/{appointment}/services/{serviceId}/status', [AppointmentController::class, 'updateServiceStatus']);
-    Route::delete('/appointments/{appointment}/services/{serviceId}', [AppointmentController::class, 'removeService']);
-    Route::patch('/appointments/{appointment}/removeService/{serviceId}', [AppointmentController::class, 'removeService']);
+    Route::get('/appointments/{appointment}', [AppointmentController::class, 'show'])->whereNumber('appointment');
+    Route::patch('/appointments/{appointment}', [AppointmentController::class, 'update'])->whereNumber('appointment');
+    Route::patch('/appointments/{appointment}/cancel', [AppointmentController::class, 'cancel'])->whereNumber('appointment');
 
     Route::get('/business-hours', [BusinessHourController::class, 'index']);
     
@@ -43,8 +39,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/services/{service}', [ServiceController::class, 'show']);
 
     Route::middleware('role:admin')->group(function () {
-        Route::patch('/appointments/{appointment}/confirm', [AppointmentController::class, 'confirm']);
-        Route::patch('/appointments/{appointment}/updateServiceStatus/{serviceId}', [AppointmentController::class, 'updateServiceStatus']);
+        Route::get('/appointments/all', [AppointmentController::class, 'allAppointments']);
+        Route::patch('/appointments/{appointment}/confirm', [AppointmentController::class, 'confirm'])->whereNumber('appointment');
+        Route::patch('/appointments/{appointment}/services/{serviceId}/status', [AppointmentController::class, 'updateServiceStatus'])->whereNumber('appointment')->whereNumber('serviceId');
+        Route::delete('/appointments/{appointment}/services/{serviceId}', [AppointmentController::class, 'removeService'])->whereNumber('appointment')->whereNumber('serviceId');
 
         Route::post('/services', [ServiceController::class, 'store']);
         Route::put('/services/{service}', [ServiceController::class, 'update']);

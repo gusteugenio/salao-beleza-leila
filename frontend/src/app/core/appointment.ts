@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { User } from './auth';
 
 export interface Service {
   id: number;
@@ -14,8 +15,8 @@ export interface AppointmentService {
   name: string;
   duration: number;
   price: number;
-  pivot?: {
-    status: 'Pendente' | 'Agendado' | 'Finalizado' | 'Cancelado';
+  pivot: {
+    status: 'Pendente' | 'Finalizado' | 'Cancelado';
     start_at: string;
     end_at: string;
   };
@@ -24,8 +25,9 @@ export interface AppointmentService {
 export interface Appointment {
   id: number;
   user_id: number;
+  user?: User;
   scheduled_at: string;
-  status: 'Pendente' | 'Agendado' | 'Finalizado' | 'Cancelado';
+  status: 'Pendente' | 'Confirmado' | 'Cancelado';
   services: AppointmentService[];
   created_at: string;
   updated_at: string;
@@ -123,6 +125,16 @@ export class AppointmentApiService {
     return this.http.patch<Appointment>(
       `${this.apiUrl}/appointments/${appointmentId}/services/${serviceId}/status`,
       { status }
+    );
+  }
+
+  /**
+   * Confirma um agendamento
+   */
+  confirm(appointmentId: number): Observable<Appointment> {
+    return this.http.patch<Appointment>(
+      `${this.apiUrl}/appointments/${appointmentId}/confirm`,
+      {}
     );
   }
 

@@ -42,8 +42,7 @@ export class Appointments implements OnInit {
   statuses = [
     { value: '', label: 'Todos os Status' },
     { value: 'Pendente', label: 'Pendente' },
-    { value: 'Agendado', label: 'Agendado' },
-    { value: 'Finalizado', label: 'Finalizado' },
+    { value: 'Confirmado', label: 'Confirmado' },
     { value: 'Cancelado', label: 'Cancelado' }
   ];
 
@@ -199,7 +198,7 @@ export class Appointments implements OnInit {
     const now = new Date();
     const scheduled = new Date(appointment.scheduled_at);
     const daysUntil = (scheduled.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-    return daysUntil > 2 && appointment.status !== 'Cancelado' && appointment.status !== 'Finalizado';
+    return daysUntil > 2 && appointment.status !== 'Cancelado' && appointment.status !== 'Confirmado';
   }
 
   /**
@@ -209,7 +208,7 @@ export class Appointments implements OnInit {
     const now = new Date();
     const scheduled = new Date(appointment.scheduled_at);
     const daysUntil = (scheduled.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-    return daysUntil > 2 && appointment.status !== 'Cancelado' && appointment.status !== 'Finalizado';
+    return daysUntil > 2 && appointment.status !== 'Cancelado' && appointment.status !== 'Confirmado';
   }
 
   /**

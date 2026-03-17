@@ -84,6 +84,20 @@ class AppointmentController extends Controller
   }
 
   /**
+   * Listar todos os agendamentos
+   */
+  public function allAppointments(Request $request)
+  {
+    if (!$request->user() || $request->user()->role !== 'admin') {
+      return response()->json(['error' => 'Acesso não autorizado'], 403);
+    }
+
+    return response()->json(
+      $this->appointmentService->getAllAppointments($request->all())
+    );
+  }
+
+  /**
    * Mostrar um
    */
   public function show(Appointment $appointment)

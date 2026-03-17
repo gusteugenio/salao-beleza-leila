@@ -3,6 +3,7 @@
 namespace App\Http\Repositories;
 
 use App\Models\Appointment;
+use Carbon\Carbon;
 
 class AppointmentRepository
 {
@@ -83,9 +84,33 @@ class AppointmentRepository
    */
   public function update(Appointment $appointment, array $data)
   {
-    $appointment->update($data);
+    if (isset($data['scheduled_at']) && $data['scheduled_at'] !== $appointment->scheduled_at) {
+      $appointment->load('services');
+      $services = $appointment->services;
+      
+      // Recalcula os horários sequenciais a partir da nova data
+      $currentTime = Carbon::parse($data['scheduled_at']);
+      $syncData = [];
+      
+      foreach ($services->sortBy('id') as $service) {
+        $endTime = $currentTime->copy()->addMinutes($service->duration);
+        
+        $syncData[$service->id] = [
+          'start_at' => $currentTime->format('Y-m-d H:i:s'),
+          'end_at' => $endTime->format('Y-m-d H:i:s'),
+          'status' => $service->pivot->status
+        ];
+        
+        $currentTime = $endTime;
+      }
+      
+      $appointment->update(['scheduled_at' => $data['scheduled_at']]);
+      $appointment->services()->sync($syncData);
+    } else {
+      $appointment->update($data);
+    }
 
-    return $appointment;
+    return $appointment->load('services');
   }
 
   /**
@@ -94,5 +119,36 @@ class AppointmentRepository
   public function delete(Appointment $appointment)
   {
     return $appointment->delete();
+  }
+
+  
+  /**
+   * Obtém todos os agendamentos com filtros (admin)
+   */
+  public function getAllAppointments(array $filters = [])
+  {
+    $query = Appointment::with(['services', 'user']);
+
+    $query->orderBy('scheduled_at', 'asc');
+
+    if (!empty($filters['status']) && $filters['status'] !== 'Todos') {
+      $query->where('status', $filters['status']);
+    }
+
+    if (!empty($filters['start_date'])) {
+      $query->whereDate('scheduled_at', '>=', $filters['start_date']);
+    }
+
+    if (!empty($filters['end_date'])) {
+      $query->whereDate('scheduled_at', '<=', $filters['end_date']);
+    }
+
+    if (!empty($filters['search_client'])) {
+      $query->whereHas('user', function ($q) use ($filters) {
+        $q->where('name', 'like', '%' . $filters['search_client'] . '%');
+      });
+    }
+
+    return $query->get();
   }
 }
