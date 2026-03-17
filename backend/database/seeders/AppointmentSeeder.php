@@ -12,177 +12,248 @@ class AppointmentSeeder extends Seeder
 {
   public function run(): void
   {
-    $cliente1 = User::where('email', 'cliente1@salao.com')->first();
-    $cliente2 = User::where('email', 'cliente2@salao.com')->first();
+    // Busca todos os clientes (excluindo o admin)
+    $clients = User::where('role', '!=', 'admin')->inRandomOrder()->get();
 
-    // Busca os serviços
-    $corte = Service::where('name', 'Corte de Cabelo')->first();
-    $manicure = Service::where('name', 'Manicure')->first();
-    $pedicure = Service::where('name', 'Pedicure')->first();
-    $coloracao = Service::where('name', 'Coloração')->first();
-    $limpeza = Service::where('name', 'Limpeza de Pele')->first();
-    $sobrancelha = Service::where('name', 'Design de Sobrancelha')->first();
-    $escova = Service::where('name', 'Escova Progressiva')->first();
-    $hidratacao = Service::where('name', 'Hidratação Profunda')->first();
-    $massagem = Service::where('name', 'Massagem Facial')->first();
+    // Busca todos os serviços
+    $services = Service::all()->keyBy('name');
+    
+    // Agendamentos históricos (passados)
+    $this->createHistoricalAppointments($clients, $services);
+    
+    // Agendamentos atuais (hoje)
+    $this->createCurrentAppointments($clients, $services);
+    
+    // Agendamentos futuros (próximos dias)
+    $this->createFutureAppointments($clients, $services);
+  }
 
-    // Agendamento 1 - Cliente 1 - Hoje às 09:30
-    $scheduledAt = Carbon::now()->setTime(9, 30);
+  private function createHistoricalAppointments($clients, $services)
+  {
+    // 3 dias atrás
+    $baseDate = Carbon::now()->subDays(3);
+    
     $appt1 = Appointment::create([
-      'user_id' => $cliente1->id,
-      'scheduled_at' => $scheduledAt,
-      'status' => 'Pendente',
+      'user_id' => $clients[0]->id,
+      'scheduled_at' => $baseDate->copy()->setTime(10, 0),
+      'status' => 'Confirmado',
     ]);
+    $this->attachServices($appt1, [
+      $services['Corte de Cabelo'],
+      $services['Coloração']
+    ], $baseDate->copy()->setTime(10, 0), 'Finalizado');
 
-    $currentTime = $scheduledAt->copy();
-    $syncData = [];
-
-    // Corte + Manicure
-    $corteEnd = $currentTime->copy()->addMinutes($corte->duration);
-    $syncData[$corte->id] = [
-      'status' => 'Pendente',
-      'start_at' => $currentTime->toDateTimeString(),
-      'end_at' => $corteEnd->toDateTimeString()
-    ];
-
-    $currentTime = $corteEnd->copy();
-    $manicureEnd = $currentTime->copy()->addMinutes($manicure->duration);
-    $syncData[$manicure->id] = [
-      'status' => 'Pendente',
-      'start_at' => $currentTime->toDateTimeString(),
-      'end_at' => $manicureEnd->toDateTimeString()
-    ];
-
-    $appt1->services()->attach($syncData);
-
-    // Agendamento 2 - Cliente 2 - Hoje às 11:30
-    $scheduledAt = Carbon::now()->setTime(11, 30);
+    // 2 dias atrás
+    $baseDate = Carbon::now()->subDays(2);
+    
     $appt2 = Appointment::create([
-      'user_id' => $cliente2->id,
-      'scheduled_at' => $scheduledAt,
+      'user_id' => $clients[1]->id,
+      'scheduled_at' => $baseDate->copy()->setTime(14, 0),
       'status' => 'Confirmado',
     ]);
+    $this->attachServices($appt2, [
+      $services['Manicure'],
+      $services['Pedicure']
+    ], $baseDate->copy()->setTime(14, 0), 'Finalizado');
 
-    $currentTime = $scheduledAt->copy();
-    $syncData = [];
-
-    // Coloração
-    $coloracao_end = $currentTime->copy()->addMinutes($coloracao->duration);
-    $syncData[$coloracao->id] = [
-      'status' => 'Confirmado',
-      'start_at' => $currentTime->toDateTimeString(),
-      'end_at' => $coloracao_end->toDateTimeString()
-    ];
-
-    $appt2->services()->attach($syncData);
-
-    // Agendamento 3 - Cliente 1 - Amanhã às 10:00
-    $scheduledAt = Carbon::tomorrow()->setTime(10, 0);
+    // 1 dia atrás
+    $baseDate = Carbon::now()->subDays(1);
+    
     $appt3 = Appointment::create([
-      'user_id' => $cliente1->id,
-      'scheduled_at' => $scheduledAt,
-      'status' => 'Pendente',
+      'user_id' => $clients[2]->id,
+      'scheduled_at' => $baseDate->copy()->setTime(9, 0),
+      'status' => 'Cancelado',
     ]);
+    $this->attachServices($appt3, [
+      $services['Limpeza de Pele']
+    ], $baseDate->copy()->setTime(9, 0), 'Cancelado');
 
-    $currentTime = $scheduledAt->copy();
-    $syncData = [];
-
-    // Limpeza de Pele + Massagem Facial
-    $limpeza_end = $currentTime->copy()->addMinutes($limpeza->duration);
-    $syncData[$limpeza->id] = [
-      'status' => 'Pendente',
-      'start_at' => $currentTime->toDateTimeString(),
-      'end_at' => $limpeza_end->toDateTimeString()
-    ];
-
-    $currentTime = $limpeza_end->copy();
-    $massagem_end = $currentTime->copy()->addMinutes($massagem->duration);
-    $syncData[$massagem->id] = [
-      'status' => 'Pendente',
-      'start_at' => $currentTime->toDateTimeString(),
-      'end_at' => $massagem_end->toDateTimeString()
-    ];
-
-    $appt3->services()->attach($syncData);
-
-    // Agendamento 4 - Cliente 2 - Amanhã às 14:00
-    $scheduledAt = Carbon::tomorrow()->setTime(14, 0);
     $appt4 = Appointment::create([
-      'user_id' => $cliente2->id,
-      'scheduled_at' => $scheduledAt,
+      'user_id' => $clients[3]->id,
+      'scheduled_at' => $baseDate->copy()->setTime(16, 30),
+      'status' => 'Confirmado',
+    ]);
+    $this->attachServices($appt4, [
+      $services['Design de Sobrancelha'],
+      $services['Massagem Facial']
+    ], $baseDate->copy()->setTime(16, 30), 'Finalizado');
+  }
+
+  private function createCurrentAppointments($clients, $services)
+  {
+    $today = Carbon::now();
+
+    // Morning appointment
+    $appt1 = Appointment::create([
+      'user_id' => $clients[0]->id,
+      'scheduled_at' => $today->copy()->setTime(9, 30),
+      'status' => 'Confirmado',
+    ]);
+    $this->attachServices($appt1, [
+      $services['Corte de Cabelo'],
+      $services['Manicure']
+    ], $today->copy()->setTime(9, 30), 'Pendente');
+
+    // Midday appointment
+    $appt2 = Appointment::create([
+      'user_id' => $clients[1]->id,
+      'scheduled_at' => $today->copy()->setTime(11, 0),
       'status' => 'Pendente',
     ]);
+    $this->attachServices($appt2, [
+      $services['Hidratação Profunda']
+    ], $today->copy()->setTime(11, 0), 'Pendente');
 
-    $currentTime = $scheduledAt->copy();
-    $syncData = [];
+    // Afternoon appointment
+    $appt3 = Appointment::create([
+      'user_id' => $clients[2]->id,
+      'scheduled_at' => $today->copy()->setTime(14, 0),
+      'status' => 'Confirmado',
+    ]);
+    $this->attachServices($appt3, [
+      $services['Escova Progressiva']
+    ], $today->copy()->setTime(14, 0), 'Pendente');
 
-    // Design de Sobrancelha + Pedicure
-    $sobrancelha_end = $currentTime->copy()->addMinutes($sobrancelha->duration);
-    $syncData[$sobrancelha->id] = [
+    // Late afternoon appointment
+    $appt4 = Appointment::create([
+      'user_id' => $clients[4]->id,
+      'scheduled_at' => $today->copy()->setTime(16, 0),
       'status' => 'Pendente',
-      'start_at' => $currentTime->toDateTimeString(),
-      'end_at' => $sobrancelha_end->toDateTimeString()
-    ];
+    ]);
+    $this->attachServices($appt4, [
+      $services['Pedicure'],
+      $services['Design de Sobrancelha']
+    ], $today->copy()->setTime(16, 0), 'Pendente');
+  }
 
-    $currentTime = $sobrancelha_end->copy();
-    $pedicure_end = $currentTime->copy()->addMinutes($pedicure->duration);
-    $syncData[$pedicure->id] = [
+  private function createFutureAppointments($clients, $services)
+  {
+    $tomorrow = Carbon::tomorrow();
+    
+    // Tomorrow morning
+    $appt1 = Appointment::create([
+      'user_id' => $clients[1]->id,
+      'scheduled_at' => $tomorrow->copy()->setTime(10, 0),
+      'status' => 'Confirmado',
+    ]);
+    $this->attachServices($appt1, [
+      $services['Limpeza de Pele'],
+      $services['Massagem Facial']
+    ], $tomorrow->copy()->setTime(10, 0), 'Pendente');
+
+    // Tomorrow afternoon
+    $appt2 = Appointment::create([
+      'user_id' => $clients[2]->id,
+      'scheduled_at' => $tomorrow->copy()->setTime(15, 0),
       'status' => 'Pendente',
-      'start_at' => $currentTime->toDateTimeString(),
-      'end_at' => $pedicure_end->toDateTimeString()
-    ];
+    ]);
+    $this->attachServices($appt2, [
+      $services['Coloração']
+    ], $tomorrow->copy()->setTime(15, 0), 'Pendente');
 
-    $appt4->services()->attach($syncData);
+    // Day after tomorrow
+    $dayAfter = Carbon::now()->addDays(2);
+    
+    $appt3 = Appointment::create([
+      'user_id' => $clients[3]->id,
+      'scheduled_at' => $dayAfter->copy()->setTime(9, 0),
+      'status' => 'Pendente',
+    ]);
+    $this->attachServices($appt3, [
+      $services['Corte de Cabelo'],
+      $services['Manicure']
+    ], $dayAfter->copy()->setTime(9, 0), 'Pendente');
 
-    // Agendamento 5 - Cliente 1 - Daqui 2 dias às 09:00
-    $scheduledAt = Carbon::now()->addDays(2)->setTime(9, 0);
+    // 3 days from now
+    $daysAhead = Carbon::now()->addDays(3);
+    
+    $appt4 = Appointment::create([
+      'user_id' => $clients[4]->id,
+      'scheduled_at' => $daysAhead->copy()->setTime(13, 30),
+      'status' => 'Pendente',
+    ]);
+    $this->attachServices($appt4, [
+      $services['Manicure'],
+      $services['Pedicure'],
+      $services['Design de Sobrancelha']
+    ], $daysAhead->copy()->setTime(13, 30), 'Pendente');
+
     $appt5 = Appointment::create([
-      'user_id' => $cliente1->id,
-      'scheduled_at' => $scheduledAt,
+      'user_id' => $clients[0]->id,
+      'scheduled_at' => $daysAhead->copy()->setTime(17, 0),
       'status' => 'Cancelado',
     ]);
+    $this->attachServices($appt5, [
+      $services['Escova Progressiva'],
+      $services['Hidratação Profunda']
+    ], $daysAhead->copy()->setTime(17, 0), 'Cancelado');
 
-    $currentTime = $scheduledAt->copy();
-    $syncData = [];
-
-    // Escova Progressiva
-    $escova_end = $currentTime->copy()->addMinutes($escova->duration);
-    $syncData[$escova->id] = [
-      'status' => 'Cancelado',
-      'start_at' => $currentTime->toDateTimeString(),
-      'end_at' => $escova_end->toDateTimeString()
-    ];
-
-    $appt5->services()->attach($syncData);
-
-    // Agendamento 6 - Cliente 2 - Daqui 3 dias às 15:00
-    $scheduledAt = Carbon::now()->addDays(3)->setTime(15, 0);
+    // 4 days from now
+    $daysAhead = Carbon::now()->addDays(4);
+    
     $appt6 = Appointment::create([
-      'user_id' => $cliente2->id,
-      'scheduled_at' => $scheduledAt,
+      'user_id' => $clients[1]->id,
+      'scheduled_at' => $daysAhead->copy()->setTime(11, 0),
       'status' => 'Pendente',
     ]);
+    $this->attachServices($appt6, [
+      $services['Limpeza de Pele']
+    ], $daysAhead->copy()->setTime(11, 0), 'Pendente');
 
-    $currentTime = $scheduledAt->copy();
+    // 5 days from now (cancelled)
+    $daysAhead = Carbon::now()->addDays(5);
+    
+    $appt7 = Appointment::create([
+      'user_id' => $clients[2]->id,
+      'scheduled_at' => $daysAhead->copy()->setTime(10, 30),
+      'status' => 'Cancelado',
+    ]);
+    $this->attachServices($appt7, [
+      $services['Corte de Cabelo']
+    ], $daysAhead->copy()->setTime(10, 30), 'Cancelado');
+
+    // Next week
+    $nextWeek = Carbon::now()->addWeek();
+    
+    $appt8 = Appointment::create([
+      'user_id' => $clients[3]->id,
+      'scheduled_at' => $nextWeek->copy()->setTime(9, 0),
+      'status' => 'Pendente',
+    ]);
+    $this->attachServices($appt8, [
+      $services['Manicure'],
+      $services['Massagem Facial']
+    ], $nextWeek->copy()->setTime(9, 0), 'Pendente');
+
+    $appt9 = Appointment::create([
+      'user_id' => $clients[4]->id,
+      'scheduled_at' => $nextWeek->copy()->setTime(14, 0),
+      'status' => 'Pendente',
+    ]);
+    $this->attachServices($appt9, [
+      $services['Coloração'],
+      $services['Hidratação Profunda']
+    ], $nextWeek->copy()->setTime(14, 0), 'Pendente');
+  }
+
+  private function attachServices($appointment, $servicesList, $startDateTime, $status)
+  {
+    $currentTime = $startDateTime->copy();
     $syncData = [];
 
-    // Hidratação + Manicure
-    $hidratacao_end = $currentTime->copy()->addMinutes($hidratacao->duration);
-    $syncData[$hidratacao->id] = [
-      'status' => 'Pendente',
-      'start_at' => $currentTime->toDateTimeString(),
-      'end_at' => $hidratacao_end->toDateTimeString()
-    ];
+    foreach ($servicesList as $service) {
+      $endTime = $currentTime->copy()->addMinutes($service->duration);
+      
+      $syncData[$service->id] = [
+        'status' => $status,
+        'start_at' => $currentTime->toDateTimeString(),
+        'end_at' => $endTime->toDateTimeString()
+      ];
 
-    $currentTime = $hidratacao_end->copy();
-    $manicure_end = $currentTime->copy()->addMinutes($manicure->duration);
-    $syncData[$manicure->id] = [
-      'status' => 'Pendente',
-      'start_at' => $currentTime->toDateTimeString(),
-      'end_at' => $manicure_end->toDateTimeString()
-    ];
+      $currentTime = $endTime->copy();
+    }
 
-    $appt6->services()->attach($syncData);
+    $appointment->services()->attach($syncData);
   }
 }
 

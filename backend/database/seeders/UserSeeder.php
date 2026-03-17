@@ -20,14 +20,32 @@ class UserSeeder extends Seeder
 
     // Clientes de exemplo
     User::create([
-      'name' => 'Cliente 1',
-      'email' => 'cliente1@salao.com',
+      'name' => 'Ana Silva',
+      'email' => 'ana@email.com',
       'password' => Hash::make('password123'),
     ]);
 
     User::create([
-      'name' => 'Cliente 2',
-      'email' => 'cliente2@salao.com',
+      'name' => 'Beatriz Costa',
+      'email' => 'beatriz@email.com',
+      'password' => Hash::make('password123'),
+    ]);
+
+    User::create([
+      'name' => 'Carolina Santos',
+      'email' => 'carolina@email.com',
+      'password' => Hash::make('password123'),
+    ]);
+
+    User::create([
+      'name' => 'Diana Oliveira',
+      'email' => 'diana@email.com',
+      'password' => Hash::make('password123'),
+    ]);
+
+    User::create([
+      'name' => 'Eduarda Pereira',
+      'email' => 'eduarda@email.com',
       'password' => Hash::make('password123'),
     ]);
   }
